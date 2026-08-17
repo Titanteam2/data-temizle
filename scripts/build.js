@@ -13,6 +13,7 @@ const staticFiles = [
   "account.js",
   "admin.js",
   "styles.css",
+  "logo.svg",
   "xlsx.full.min.js",
 ];
 

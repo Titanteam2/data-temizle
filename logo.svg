@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Data Temizle">
+  <defs>
+    <linearGradient id="orb" x1="24" y1="18" x2="106" y2="112" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#79fff0"/>
+      <stop offset="0.54" stop-color="#2aa9c9"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="shadow" x1="31" y1="29" x2="98" y2="100" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0f3440"/>
+      <stop offset="1" stop-color="#091923"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#0e1b24"/>
+  <circle cx="64" cy="64" r="42" fill="url(#orb)"/>
+  <circle cx="64" cy="64" r="30" fill="url(#shadow)" opacity=".95"/>
+  <path d="M45 51h38M45 64h25M45 77h38" stroke="#f7fbfc" stroke-width="8" stroke-linecap="round"/>
+  <path d="M79 39l4 10 10 4-10 4-4 10-4-10-10-4 10-4 4-10Z" fill="#79fff0"/>
+  <path d="M91 82l3 7 7 3-7 3-3 7-3-7-7-3 7-3 3-7Z" fill="#60a5fa"/>
+</svg>

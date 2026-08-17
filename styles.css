@@ -267,8 +267,9 @@ select.is-passive {
   width: 46px;
   height: 46px;
   border-radius: 8px;
-  background: linear-gradient(145deg, #141a22 0%, #196f73 100%);
-  color: #fff;
+  background: #0e1b24 url("/logo.svg") center / cover no-repeat;
+  color: transparent;
+  overflow: hidden;
   font-weight: 800;
   box-shadow: 0 12px 26px rgba(25, 111, 115, 0.28);
 }
