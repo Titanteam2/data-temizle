@@ -109,7 +109,7 @@ Gönderilmemesi gerekenler:
 npm run build
 ```
 
-4. Output Directory boş kalabilir; statik dosyalar root'tan servis edilir.
+4. Output Directory: `public`
 5. Environment Variables bölümüne `.env.example` içindeki değişkenlerin gerçek değerlerini girin.
 6. Deploy edin.
 7. Vercel Cron, `/api/cron/cleanup-files` endpoint'ini her gün çalıştırır.

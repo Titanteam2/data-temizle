@@ -10,6 +10,7 @@ const requiredFiles = [
   "app.js",
   "admin.js",
   "styles.css",
+  "scripts/build.js",
   "server/index.js",
   "server/api.js",
   "server/lib/env.js",
@@ -35,6 +36,7 @@ const jsFiles = [
   "server/lib/rate-limit.js",
   "server/lib/supabase.js",
   "api/[...path].js",
+  "scripts/build.js",
   "scripts/check-production.js",
 ];
 const scanFiles = [

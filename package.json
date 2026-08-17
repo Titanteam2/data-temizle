@@ -7,7 +7,7 @@
   },
   "scripts": {
     "start": "node server/index.js",
-    "build": "node scripts/check-production.js",
+    "build": "node scripts/build.js",
     "test": "node scripts/check-production.js"
   }
 }
