@@ -945,6 +945,17 @@ select.is-passive {
   font-size: 0.95rem;
 }
 
+.admin-field {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-field span {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
 .admin-create-form button {
   min-height: 42px;
   padding: 0 14px;
@@ -1104,7 +1115,7 @@ select.is-passive {
 }
 
 .promo-create-form {
-  grid-template-columns: minmax(130px, 1fr) 110px 130px 150px 100px auto;
+  grid-template-columns: minmax(180px, 1fr) 130px 150px 150px 100px auto;
 }
 
 .promo-active-row {

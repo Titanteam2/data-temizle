@@ -88,10 +88,22 @@
 
         <form id="promoCreateForm" class="admin-create-form promo-create-form">
           <h3>Kod Oluştur</h3>
-          <input id="promoCreateCode" type="text" placeholder="Kod: AJANS30" autocomplete="off" />
-          <input id="promoTrialDays" type="number" min="1" max="365" step="1" value="30" placeholder="Pro gün sayısı" />
-          <input id="promoMaxRedemptions" type="number" min="1" step="1" value="100" placeholder="Kullanım limiti" />
-          <input id="promoExpiresAt" type="date" />
+          <label class="admin-field">
+            <span>Kod</span>
+            <input id="promoCreateCode" type="text" placeholder="AJANS30" autocomplete="off" />
+          </label>
+          <label class="admin-field">
+            <span>Pro gün sayısı</span>
+            <input id="promoTrialDays" type="number" min="1" max="365" step="1" value="30" />
+          </label>
+          <label class="admin-field">
+            <span>Kullanım limiti</span>
+            <input id="promoMaxRedemptions" type="number" min="1" step="1" value="100" />
+          </label>
+          <label class="admin-field">
+            <span>Son tarih</span>
+            <input id="promoExpiresAt" type="date" />
+          </label>
           <label class="check-row promo-active-row">
             <input id="promoActive" type="checkbox" checked />
             <span>Aktif</span>
