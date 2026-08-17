@@ -15,9 +15,11 @@ const staticFiles = new Map([
   ["/", { file: "index.html", type: "text/html; charset=utf-8" }],
   ["/index.html", { file: "index.html", type: "text/html; charset=utf-8" }],
   ["/admin.html", { file: "admin.html", type: "text/html; charset=utf-8" }],
+  ["/account.html", { file: "account.html", type: "text/html; charset=utf-8" }],
   ["/pricing.html", { file: "pricing.html", type: "text/html; charset=utf-8" }],
   ["/app.js", { file: "app.js", type: "application/javascript; charset=utf-8" }],
   ["/admin.js", { file: "admin.js", type: "application/javascript; charset=utf-8" }],
+  ["/account.js", { file: "account.js", type: "application/javascript; charset=utf-8" }],
   ["/styles.css", { file: "styles.css", type: "text/css; charset=utf-8" }],
   ["/xlsx.full.min.js", { file: "xlsx.full.min.js", type: "application/javascript; charset=utf-8" }],
 ]);

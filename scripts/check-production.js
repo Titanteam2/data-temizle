@@ -5,9 +5,11 @@ const { spawnSync } = require("node:child_process");
 const rootDir = path.resolve(__dirname, "..");
 const requiredFiles = [
   "index.html",
+  "account.html",
   "admin.html",
   "pricing.html",
   "app.js",
+  "account.js",
   "admin.js",
   "styles.css",
   "scripts/build.js",
@@ -28,6 +30,7 @@ const requiredFiles = [
 
 const jsFiles = [
   "app.js",
+  "account.js",
   "admin.js",
   "server/index.js",
   "server/api.js",
@@ -41,12 +44,14 @@ const jsFiles = [
 ];
 const scanFiles = [
   "app.js",
+  "account.js",
   "admin.js",
   "server/index.js",
   "server/api.js",
   "server/lib/supabase.js",
   "api/[...path].js",
   "index.html",
+  "account.html",
   "admin.html",
   "pricing.html",
   "styles.css",

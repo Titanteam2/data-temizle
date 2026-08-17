@@ -534,6 +534,47 @@ select.is-passive {
   min-height: 38px;
 }
 
+.account-summary {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--soft);
+  padding: 10px;
+}
+
+.account-summary > span {
+  display: inline-grid;
+  width: fit-content;
+  min-height: 26px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(107, 114, 128, 0.14);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 0 10px;
+}
+
+.account-summary > span.is-pro {
+  background: rgba(20, 184, 166, 0.16);
+  color: var(--accent);
+}
+
+.account-summary strong {
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.account-summary small {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .plan-toggle {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -657,6 +698,7 @@ select.is-passive {
 }
 
 .admin-link,
+.account-link,
 .pricing-link {
   display: grid;
   min-height: 38px;
@@ -667,6 +709,11 @@ select.is-passive {
   font-size: 0.82rem;
   font-weight: 900;
   text-decoration: none;
+}
+
+.account-link {
+  background: var(--accent);
+  color: #fff;
 }
 
 .pricing-link {
@@ -690,6 +737,7 @@ select.is-passive {
   padding: 24px;
 }
 
+.account-page,
 .pricing-page {
   display: grid;
   gap: 22px;
@@ -698,6 +746,7 @@ select.is-passive {
 }
 
 .admin-header,
+.account-header,
 .pricing-header {
   display: flex;
   align-items: center;
@@ -705,11 +754,47 @@ select.is-passive {
   gap: 16px;
 }
 
+.account-header a,
 .pricing-header a {
   color: var(--accent);
   font-size: 0.86rem;
   font-weight: 900;
   text-decoration: none;
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.95fr) minmax(260px, 1fr) minmax(300px, 1.1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.account-card {
+  align-content: start;
+  min-height: 100%;
+}
+
+.account-card > h2,
+.account-plan-head h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.35rem;
+}
+
+.account-card > small,
+.account-copy {
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.account-plan-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .pricing-intro {
@@ -1918,6 +2003,7 @@ tbody tr:hover {
 
   .admin-header-actions,
   .admin-tools,
+  .account-grid,
   .admin-metrics {
     grid-template-columns: 1fr;
   }

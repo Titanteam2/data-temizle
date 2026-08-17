@@ -6,9 +6,11 @@ const rootDir = path.resolve(__dirname, "..");
 const publicDir = path.join(rootDir, "public");
 const staticFiles = [
   "index.html",
+  "account.html",
   "admin.html",
   "pricing.html",
   "app.js",
+  "account.js",
   "admin.js",
   "styles.css",
   "xlsx.full.min.js",

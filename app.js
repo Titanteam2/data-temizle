@@ -62,6 +62,8 @@ const els = {
   promoCodeInput: document.querySelector("#promoCodeInput"),
   promoCodeButton: document.querySelector("#promoCodeButton"),
   promoStatus: document.querySelector("#promoStatus"),
+  accountPlanBadge: document.querySelector("#accountPlanBadge"),
+  accountName: document.querySelector("#accountName"),
   planStatus: document.querySelector("#planStatus"),
   usageLimitCard: document.querySelector("#usageLimitCard"),
   usageLimitLabel: document.querySelector("#usageLimitLabel"),
@@ -158,10 +160,10 @@ els.sampleButton.addEventListener("click", () => loadCsv(sampleCsv, "ornek-veri.
 els.authModeButtons.forEach((button) => {
   button.addEventListener("click", () => setAuthMode(button.dataset.authMode));
 });
-els.loginButton.addEventListener("click", login);
-els.logoutButton.addEventListener("click", logout);
-els.upgradeDemoButton.addEventListener("click", upgradeDemo);
-els.promoCodeButton.addEventListener("click", startPromoTrial);
+els.loginButton?.addEventListener("click", login);
+els.logoutButton?.addEventListener("click", logout);
+els.upgradeDemoButton?.addEventListener("click", upgradeDemo);
+els.promoCodeButton?.addEventListener("click", startPromoTrial);
 els.applyClean.addEventListener("click", () => runHeavyAction("Veri temizleniyor", cleanData));
 els.applyRecipeButton.addEventListener("click", applyCleanRecipe);
 els.undoButton.addEventListener("click", undoLastAction);
@@ -306,9 +308,10 @@ function setAuthMode(mode) {
 }
 
 async function login() {
+  if (!els.authEmail || !els.authPassword) return;
   const email = els.authEmail.value.trim();
   const password = els.authPassword.value;
-  const name = els.authName.value.trim();
+  const name = els.authName?.value.trim() || "";
   if (!email) {
     showToast("Giriş için e-posta adresi yazın.", "warning", "Eksik bilgi");
     return;
@@ -362,9 +365,9 @@ async function logout() {
     await apiFetch("/api/logout", { method: "POST" });
     state.user = null;
     state.authError = "";
-    els.authEmail.value = "";
-    els.authPassword.value = "";
-    els.authName.value = "";
+    if (els.authEmail) els.authEmail.value = "";
+    if (els.authPassword) els.authPassword.value = "";
+    if (els.authName) els.authName.value = "";
     render();
   } catch {
     state.authError = "Çıkış yapılırken sunucuya ulaşılamadı.";
@@ -394,6 +397,7 @@ async function upgradeDemo() {
 }
 
 async function startPromoTrial() {
+  if (!els.promoCodeInput || !els.promoStatus) return;
   const code = els.promoCodeInput.value.trim();
   if (!state.user) {
     showToast("Promosyon kodu kullanmak için önce giriş yapın.", "warning", "Giriş gerekli");
@@ -1202,29 +1206,34 @@ function updatePlanState() {
   els.authModeButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.authMode === state.authMode);
   });
-  els.authTabs.classList.toggle("hidden", Boolean(state.user));
-  els.authFields.classList.toggle("hidden", Boolean(state.user));
-  els.authName.classList.toggle("hidden", state.authMode !== "register");
-  els.authEmail.disabled = state.authLoading || Boolean(state.user);
-  els.authName.disabled = state.authLoading || Boolean(state.user);
-  els.authPassword.disabled = state.authLoading || Boolean(state.user);
-  els.loginButton.disabled = state.authLoading;
-  els.logoutButton.disabled = state.authLoading;
-  els.upgradeDemoButton.disabled = state.authLoading;
-  els.promoCodeInput.disabled = state.authLoading || !state.user || isProPlan();
-  els.promoCodeButton.disabled = state.authLoading || !state.user || isProPlan();
-  els.loginButton.classList.toggle("hidden", Boolean(state.user));
-  els.logoutButton.classList.toggle("hidden", !state.user);
-  els.upgradeDemoButton.classList.toggle("hidden", !state.user || isProPlan());
+  els.authTabs?.classList.toggle("hidden", Boolean(state.user));
+  els.authFields?.classList.toggle("hidden", Boolean(state.user));
+  els.authName?.classList.toggle("hidden", state.authMode !== "register");
+  if (els.authEmail) els.authEmail.disabled = state.authLoading || Boolean(state.user);
+  if (els.authName) els.authName.disabled = state.authLoading || Boolean(state.user);
+  if (els.authPassword) els.authPassword.disabled = state.authLoading || Boolean(state.user);
+  if (els.loginButton) els.loginButton.disabled = state.authLoading;
+  if (els.logoutButton) els.logoutButton.disabled = state.authLoading;
+  if (els.upgradeDemoButton) els.upgradeDemoButton.disabled = state.authLoading;
+  if (els.promoCodeInput) els.promoCodeInput.disabled = state.authLoading || !state.user || isProPlan();
+  if (els.promoCodeButton) els.promoCodeButton.disabled = state.authLoading || !state.user || isProPlan();
+  els.loginButton?.classList.toggle("hidden", Boolean(state.user));
+  els.logoutButton?.classList.toggle("hidden", !state.user);
+  els.upgradeDemoButton?.classList.toggle("hidden", !state.user || isProPlan());
   els.adminLink.classList.toggle("hidden", !state.user?.isAdmin);
-  els.loginButton.textContent = state.authMode === "register" ? "Kayıt Ol" : "Giriş Yap";
-  els.authPassword.autocomplete = state.authMode === "register" ? "new-password" : "current-password";
+  if (els.loginButton) els.loginButton.textContent = state.authMode === "register" ? "Kayıt Ol" : "Giriş Yap";
+  if (els.authPassword) els.authPassword.autocomplete = state.authMode === "register" ? "new-password" : "current-password";
 
-  if (state.user) {
+  if (state.user && els.authEmail) {
     els.authEmail.value = state.user.email;
   }
 
   const accountLabel = state.user?.name || state.user?.email;
+  if (els.accountName) els.accountName.textContent = accountLabel || "Giriş yapılmadı";
+  if (els.accountPlanBadge) {
+    els.accountPlanBadge.textContent = isProPlan() ? "Pro" : "Free";
+    els.accountPlanBadge.classList.toggle("is-pro", isProPlan());
+  }
   if (state.authLoading) {
     els.planStatus.textContent = "Üyelik bilgisi kontrol ediliyor.";
   } else if (state.authError) {
@@ -1233,20 +1242,20 @@ function updatePlanState() {
     els.planStatus.textContent = state.authMode === "register"
       ? "Yeni hesap ücretsiz başlar. Pro özellikler ödeme bağlanınca lisansla açılır."
       : "Hesabınız varsa giriş yapın; yoksa Kayıt Ol sekmesini kullanın.";
-    els.promoStatus.textContent = "Promosyon kodu kullanmak için önce giriş yapın.";
+    if (els.promoStatus) els.promoStatus.textContent = "Promosyon kodu kullanmak için önce giriş yapın.";
   } else if (freeLimitReached) {
     els.planStatus.textContent = `${state.rows.length.toLocaleString("tr-TR")} satır yüklendi. Ücretsiz paket 1.000 satıra kadar çalışır; Pro lisans gerekir.`;
   } else if (isProPlan()) {
     els.planStatus.textContent = `Pro aktif: ${accountLabel}`;
-    els.promoStatus.textContent = "Pro hesabınız aktif olduğu için promosyon kodu gerekmez.";
+    if (els.promoStatus) els.promoStatus.textContent = "Pro hesabınız aktif olduğu için promosyon kodu gerekmez.";
   } else if (!hasRows) {
     els.planStatus.textContent = `Ücretsiz hesap: ${accountLabel}`;
-    if (!els.promoStatus.textContent || els.promoStatus.textContent.includes("giriş yapın")) {
+    if (els.promoStatus && (!els.promoStatus.textContent || els.promoStatus.textContent.includes("giriş yapın"))) {
       els.promoStatus.textContent = "Kod geçerliyse kart doğrulama adımına geçilir.";
     }
   } else {
     els.planStatus.textContent = `${state.rows.length.toLocaleString("tr-TR")} / ${FREE_ROW_LIMIT.toLocaleString("tr-TR")} satır kullanılıyor. Excel, ZIP, SMS ve segment indirme Pro özelliği olarak gösterilir.`;
-    if (!els.promoStatus.textContent || els.promoStatus.textContent.includes("giriş yapın")) {
+    if (els.promoStatus && (!els.promoStatus.textContent || els.promoStatus.textContent.includes("giriş yapın"))) {
       els.promoStatus.textContent = "Kod geçerliyse kart doğrulama adımına geçilir.";
     }
   }

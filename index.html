@@ -35,31 +35,10 @@
 
         <section class="panel plan-panel">
           <h2>Üyelik</h2>
-          <div id="authTabs" class="auth-tabs" role="group" aria-label="Üyelik işlemi">
-            <button class="is-active" type="button" data-auth-mode="login">Giriş</button>
-            <button type="button" data-auth-mode="register">Kayıt Ol</button>
-          </div>
-          <div id="authFields" class="auth-fields">
-            <input id="authName" class="hidden" type="text" placeholder="Ad Soyad" autocomplete="name" />
-            <input id="authEmail" type="email" placeholder="E-posta" autocomplete="email" />
-            <input id="authPassword" type="password" placeholder="Şifre" autocomplete="current-password" />
-          </div>
-          <div class="auth-actions">
-            <button id="loginButton" type="button">Giriş Yap</button>
-            <button id="logoutButton" class="hidden" type="button">Çıkış</button>
-          </div>
-          <button id="upgradeDemoButton" class="hidden" type="button">Demo Pro Tanımla</button>
-          <div class="plan-features">
-            <span>Ücretsiz: 1.000 satıra kadar temel CSV</span>
-            <span>Pro: Excel, ZIP, SMS metni, segment indirme</span>
-          </div>
-          <div id="promoCard" class="promo-card">
-            <label class="field-label" for="promoCodeInput">Promosyon kodu</label>
-            <div class="promo-row">
-              <input id="promoCodeInput" type="text" placeholder="Örn. AJANS30" autocomplete="off" />
-              <button id="promoCodeButton" type="button">Kullan</button>
-            </div>
-            <small id="promoStatus">Kod geçerliyse kart doğrulama adımına geçilir.</small>
+          <div class="account-summary">
+            <span id="accountPlanBadge">Free</span>
+            <strong id="accountName">Giriş yapılmadı</strong>
+            <small id="planStatus">Giriş yapınca plan bilgisi burada görünür.</small>
           </div>
           <div id="usageLimitCard" class="usage-limit-card">
             <div class="usage-limit-head">
@@ -69,9 +48,9 @@
             <div class="usage-limit-bar"><i id="usageLimitBar"></i></div>
             <small id="usageLimitHint">Dosya yükleyince kullanım durumu görünür.</small>
           </div>
+          <a class="account-link" href="/account.html">Hesabı Yönet</a>
           <a class="pricing-link" href="/pricing.html">Paketleri Gör</a>
           <a id="adminLink" class="admin-link hidden" href="/admin.html">Yönetici Paneli</a>
-          <small id="planStatus" class="panel-note">Giriş yapınca plan bilgisi burada görünür.</small>
         </section>
 
         <section class="panel">

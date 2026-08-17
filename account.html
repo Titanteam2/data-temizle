@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hesap - Data Temizle</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+  </head>
+  <body>
+    <div id="appError" class="app-error hidden" role="alert"></div>
+    <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="true"></div>
+
+    <main class="account-page">
+      <header class="account-header">
+        <div class="brand">
+          <span class="brand-mark">DT</span>
+          <div>
+            <h1>Hesap</h1>
+            <p>Üyelik, promosyon ve plan yönetimi</p>
+          </div>
+        </div>
+        <a href="/index.html">Uygulamaya Dön</a>
+      </header>
+
+      <section class="account-grid">
+        <article class="panel account-card">
+          <p class="eyebrow">Oturum</p>
+          <h2 id="accountTitle">Giriş yapın</h2>
+          <small id="accountSubtitle">Hesabınız yoksa Kayıt Ol sekmesini kullanın.</small>
+
+          <div id="authTabs" class="auth-tabs" role="group" aria-label="Üyelik işlemi">
+            <button class="is-active" type="button" data-auth-mode="login">Giriş</button>
+            <button type="button" data-auth-mode="register">Kayıt Ol</button>
+          </div>
+
+          <div id="authFields" class="auth-fields">
+            <input id="authName" class="hidden" type="text" placeholder="Ad Soyad" autocomplete="name" />
+            <input id="authEmail" type="email" placeholder="E-posta" autocomplete="email" />
+            <input id="authPassword" type="password" placeholder="Şifre" autocomplete="current-password" />
+          </div>
+
+          <div class="auth-actions">
+            <button id="loginButton" type="button">Giriş Yap</button>
+            <button id="logoutButton" class="hidden" type="button">Çıkış</button>
+          </div>
+
+          <small id="authStatus" class="panel-note">Üyelik bilgisi kontrol ediliyor.</small>
+        </article>
+
+        <article class="panel account-card">
+          <p class="eyebrow">Plan</p>
+          <div class="account-plan-head">
+            <h2 id="planName">Free</h2>
+            <span id="planBadge" class="plan-badge">Free</span>
+          </div>
+          <div class="plan-features account-plan-features">
+            <span>Ücretsiz: 1.000 satıra kadar temel CSV</span>
+            <span>Pro: Excel, ZIP, SMS metni, segment indirme</span>
+          </div>
+          <a class="pricing-link" href="/pricing.html">Paketleri Gör</a>
+        </article>
+
+        <article class="panel account-card">
+          <p class="eyebrow">Promosyon</p>
+          <h2>Deneme kodu</h2>
+          <p class="account-copy">
+            Reklam veya davet kodunuz varsa burada kullanın. Kod geçerliyse iyzico kart doğrulama adımı başlayacak.
+          </p>
+          <div class="promo-row">
+            <input id="promoCodeInput" type="text" placeholder="AJANS30" autocomplete="off" />
+            <button id="promoCodeButton" type="button">Kodu Kullan</button>
+          </div>
+          <small id="promoStatus" class="panel-note">Kod kullanmak için önce giriş yapın.</small>
+        </article>
+      </section>
+    </main>
+
+    <script src="account.js"></script>
+  </body>
+</html>
