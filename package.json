@@ -1,0 +1,13 @@
+{
+  "name": "data-temizle",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "build": "node scripts/check-production.js",
+    "test": "node scripts/check-production.js"
+  }
+}

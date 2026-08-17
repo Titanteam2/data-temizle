@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Data Temizle</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="appError" class="app-error hidden" role="alert"></div>
+    <main class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">DT</span>
+          <div>
+            <h1>Data Temizle</h1>
+            <p>Müşteri listesi temizleme</p>
+          </div>
+          <button id="themeToggle" class="theme-toggle" type="button" aria-label="Koyu modu aç" title="Koyu modu aç"></button>
+        </div>
+
+        <label class="upload-zone" for="fileInput">
+          <input id="fileInput" type="file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
+          <span class="upload-icon">↑</span>
+          <strong>CSV veya Excel dosyası seç</strong>
+          <small>CSV, XLSX ve XLS dosyalarının ilk sayfası desteklenir.</small>
+          <span id="uploadStatus" class="upload-status">Dosya bekleniyor</span>
+        </label>
+
+        <section class="panel plan-panel">
+          <h2>Üyelik</h2>
+          <div id="authTabs" class="auth-tabs" role="group" aria-label="Üyelik işlemi">
+            <button class="is-active" type="button" data-auth-mode="login">Giriş</button>
+            <button type="button" data-auth-mode="register">Kayıt Ol</button>
+          </div>
+          <div id="authFields" class="auth-fields">
+            <input id="authName" class="hidden" type="text" placeholder="Ad Soyad" autocomplete="name" />
+            <input id="authEmail" type="email" placeholder="E-posta" autocomplete="email" />
+            <input id="authPassword" type="password" placeholder="Şifre" autocomplete="current-password" />
+          </div>
+          <div class="auth-actions">
+            <button id="loginButton" type="button">Giriş Yap</button>
+            <button id="logoutButton" class="hidden" type="button">Çıkış</button>
+          </div>
+          <button id="upgradeDemoButton" class="hidden" type="button">Demo Pro Tanımla</button>
+          <div class="plan-features">
+            <span>Ücretsiz: 1.000 satıra kadar temel CSV</span>
+            <span>Pro: Excel, ZIP, SMS metni, segment indirme</span>
+          </div>
+          <div id="usageLimitCard" class="usage-limit-card">
+            <div class="usage-limit-head">
+              <span id="usageLimitLabel">Satır hakkı</span>
+              <strong id="usageLimitValue">0 / 1.000</strong>
+            </div>
+            <div class="usage-limit-bar"><i id="usageLimitBar"></i></div>
+            <small id="usageLimitHint">Dosya yükleyince kullanım durumu görünür.</small>
+          </div>
+          <a class="pricing-link" href="/pricing.html">Paketleri Gör</a>
+          <a id="adminLink" class="admin-link hidden" href="/admin.html">Yönetici Paneli</a>
+          <small id="planStatus" class="panel-note">Giriş yapınca plan bilgisi burada görünür.</small>
+        </section>
+
+        <section class="panel">
+          <h2>Temizleme</h2>
+          <label class="field-label" for="cleanRecipe">Hazır reçete</label>
+          <select id="cleanRecipe">
+            <option value="sms">SMS kampanya listesi</option>
+            <option value="crm">CRM aktarım listesi</option>
+            <option value="email">E-posta kampanyası</option>
+            <option value="call">Çağrı merkezi listesi</option>
+          </select>
+          <button id="applyRecipeButton" type="button">Reçeteyi Uygula</button>
+          <label class="check-row">
+            <input id="trimWhitespace" type="checkbox" checked />
+            <span>Boşlukları kırp</span>
+          </label>
+          <label class="check-row">
+            <input id="normalizeEmpty" type="checkbox" checked />
+            <span>Boş değerleri standartlaştır</span>
+          </label>
+          <label class="check-row">
+            <input id="removeDuplicates" type="checkbox" />
+            <span>Tekrarlanan satırları kaldır</span>
+          </label>
+          <label class="check-row">
+            <input id="normalizeCase" type="checkbox" />
+            <span>Metni başlık düzenine getir</span>
+          </label>
+          <label class="field-label" for="phoneFormat">Telefon formatı</label>
+          <select id="phoneFormat">
+            <option value="international">+90 5xx xxx xx xx</option>
+            <option value="localDigits">5xx xxx xx xx</option>
+          </select>
+          <button id="applyClean" class="primary-button" type="button">Temizle</button>
+          <button id="smartCleanButton" type="button">CRM İçin Hazırla</button>
+        </section>
+
+        <section class="panel">
+          <h2>Bul ve Değiştir</h2>
+          <select id="replaceColumn"></select>
+          <input id="findText" type="text" placeholder="Bul" />
+          <input id="replaceText" type="text" placeholder="Değiştir" />
+          <button id="replaceButton" type="button">Uygula</button>
+        </section>
+
+        <section class="panel">
+          <h2>İndirme Merkezi</h2>
+          <label class="field-label" for="downloadFormat">Format</label>
+          <select id="downloadFormat">
+            <option value="csv">CSV</option>
+            <option value="xlsx">Excel</option>
+            <option value="template">CRM şablon CSV</option>
+            <option value="splitZip">Kolona göre Excel ZIP</option>
+            <option value="report">Kalite raporu</option>
+          </select>
+          <div id="downloadScopeGroup" class="download-option-group">
+            <label class="field-label" for="downloadScope">Kapsam</label>
+            <select id="downloadScope">
+              <option value="all">Tüm veri</option>
+              <option value="visible">Görünen satırlar</option>
+              <option value="ready">Temiz kayıtlar</option>
+              <option value="issues">Sorunlu kayıtlar</option>
+              <option value="email">Mail sorunluları</option>
+              <option value="phone">Telefon sorunluları</option>
+              <option value="duplicates">Tekrar kayıtlar</option>
+            </select>
+          </div>
+          <div id="exportTemplateGroup" class="download-option-group">
+            <label class="field-label" for="exportTemplate">CRM şablonu</label>
+            <select id="exportTemplate">
+              <option value="current">Mevcut kolonlar</option>
+              <option value="crm">Standart CRM</option>
+              <option value="whatsapp">WhatsApp Business</option>
+              <option value="mailchimp">Mailchimp</option>
+            </select>
+          </div>
+          <div id="downloadLimitGroup" class="download-option-group">
+            <label class="field-label" for="downloadLimit">İndirme satır limiti</label>
+            <select id="downloadLimit">
+              <option value="all">Sınırsız</option>
+              <option value="100">İlk 100 satır</option>
+              <option value="500">İlk 500 satır</option>
+              <option value="1000">İlk 1.000 satır</option>
+              <option value="5000">İlk 5.000 satır</option>
+              <option value="10000">İlk 10.000 satır</option>
+              <option value="manual">Manuel limit</option>
+            </select>
+            <input id="downloadLimitManual" class="hidden" type="number" min="1" step="1" placeholder="Örn. 2500" />
+          </div>
+          <div id="splitColumnGroup" class="download-option-group">
+            <label class="field-label" for="splitColumn">Ayrı Excel kolonu</label>
+            <select id="splitColumn"></select>
+          </div>
+          <small id="downloadInfo" class="panel-note">Veri yükleyince indirme seçenekleri hazırlanır.</small>
+          <button id="downloadCenterButton" class="primary-button" type="button" disabled>İndir</button>
+        </section>
+
+        <section class="panel sms-panel">
+          <h2>SMS Metni</h2>
+          <input id="smsColumnName" type="text" value="SMS Metni" aria-label="SMS kolon adı" />
+          <textarea id="smsTemplate" rows="5" placeholder="Size özel {Şehir} mağazanızda 1000 TL indirim."></textarea>
+          <div class="sms-token-row">
+            <select id="smsTokenColumn" aria-label="SMS değişken kolonu"></select>
+            <button id="insertSmsTokenButton" type="button" disabled>Kolon Ekle</button>
+          </div>
+          <small id="smsPreview">Veri yükleyince SMS önizlemesi burada görünür.</small>
+          <div id="smsColumnList" class="sms-column-list"></div>
+          <button id="createSmsColumnButton" type="button" disabled>SMS Kolonu Oluştur</button>
+        </section>
+
+        <div class="trust-strip">
+          <span>Yerel işlem</span>
+          <strong>Veri tarayıcıdan çıkmaz</strong>
+          <a href="mailto:info@datatemizle.com">info@datatemizle.com</a>
+        </div>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Çalışma Alanı</p>
+            <h2 id="fileName">Henüz dosya seçilmedi</h2>
+          </div>
+          <div class="actions">
+            <button id="sampleButton" type="button">Örnek Veri</button>
+          </div>
+        </header>
+
+        <section class="stats-grid" aria-label="Veri özeti">
+          <div class="stat score-stat">
+            <span>Kalite Skoru</span>
+            <strong id="qualityScore">0</strong>
+            <div class="score-bar" aria-hidden="true"><i id="qualityScoreBar"></i></div>
+          </div>
+          <div class="stat">
+            <span>Satır</span>
+            <strong id="rowCount">0</strong>
+          </div>
+          <div class="stat">
+            <span>Kolon</span>
+            <strong id="columnCount">0</strong>
+          </div>
+          <div class="stat">
+            <span>Boş Hücre</span>
+            <strong id="emptyCount">0</strong>
+          </div>
+          <div class="stat">
+            <span>Tekrar</span>
+            <strong id="duplicateCount">0</strong>
+          </div>
+          <div class="stat">
+            <span>E-posta Sorunu</span>
+            <strong id="emailIssueCount">0</strong>
+          </div>
+          <div class="stat">
+            <span>Telefon Sorunu</span>
+            <strong id="phoneIssueCount">0</strong>
+          </div>
+        </section>
+
+        <section class="segment-panel">
+          <div class="segment-summary">
+            <div>
+              <span>Kampanyaya hazır</span>
+              <strong id="readySegmentCount">0</strong>
+            </div>
+            <div>
+              <span>Düzeltilmesi gereken</span>
+              <strong id="issueSegmentCount">0</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="insights-panel">
+          <div class="section-heading">
+            <h3>Veri Kalitesi</h3>
+            <span id="detectedFields">Kolon bekleniyor</span>
+          </div>
+          <div id="issuesList" class="issues-list"></div>
+          <div id="phoneDetailList" class="phone-detail-list"></div>
+        </section>
+
+        <section class="results-panel">
+          <div class="section-heading">
+            <h3>Temizlik Sonucu</h3>
+            <div class="history-actions">
+              <button id="undoButton" class="ghost-button small-button" type="button" disabled>Geri Al</button>
+              <span id="lastActionLabel">Henüz işlem yok</span>
+            </div>
+          </div>
+          <div id="cleanupResults" class="result-grid"></div>
+          <div id="changePreview" class="change-preview hidden"></div>
+        </section>
+
+        <section id="editorLayout" class="editor-layout columns-collapsed">
+          <div id="columnTools" class="column-tools is-collapsed">
+            <div class="section-heading">
+              <h3>Kolonlar</h3>
+              <button id="toggleColumnsButton" class="ghost-button small-button" type="button">Aç</button>
+            </div>
+            <div id="columnsList" class="columns-list"></div>
+          </div>
+
+          <div class="table-area">
+            <div class="table-toolbar">
+              <input id="searchInput" type="search" placeholder="Tabloda ara" />
+              <select id="rowFilter" aria-label="Satır filtresi">
+                <option value="all">Tüm satırlar</option>
+                <option value="issues">Sorunlu satırlar</option>
+                <option value="empty">Boş hücre içerenler</option>
+                <option value="email">E-posta sorunları</option>
+                <option value="phone">Telefon sorunları</option>
+                <option value="duplicates">Tekrar kayıtlar</option>
+              </select>
+              <select id="duplicateColumnFilter" aria-label="Tekrar kontrol kolonu">
+                <option value="__row__">Tekrar: tüm satır</option>
+              </select>
+              <span id="visibleRows">0 satır görünüyor</span>
+            </div>
+            <div class="table-wrap">
+              <table id="dataTable">
+                <thead></thead>
+                <tbody></tbody>
+              </table>
+              <div id="emptyState" class="empty-state">
+                <strong>Bir CSV yükleyerek başlayın</strong>
+                <span>Veri burada tablo olarak görünecek.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <template id="columnTemplate">
+      <article class="column-item">
+        <button class="column-name" type="button"></button>
+        <input class="rename-input" type="text" aria-label="Kolon adı" />
+        <button class="rename-button" type="button">Adlandır</button>
+        <div class="column-actions"></div>
+      </article>
+    </template>
+
+    <script src="xlsx.full.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

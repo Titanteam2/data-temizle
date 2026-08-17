@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yönetici - Data Temizle</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="appError" class="app-error hidden" role="alert"></div>
+    <main class="admin-page">
+      <header class="admin-header">
+        <div class="brand">
+          <span class="brand-mark">DT</span>
+          <div>
+            <h1>Yönetici Paneli</h1>
+            <p>Data Temizle kullanıcı ve plan yönetimi</p>
+          </div>
+        </div>
+        <div class="admin-header-actions">
+          <a href="/index.html">Uygulamaya Dön</a>
+          <button id="adminLogoutButton" type="button">Çıkış</button>
+        </div>
+      </header>
+
+      <section id="adminGate" class="panel admin-gate hidden">
+        <h2>Yönetici girişi gerekli</h2>
+        <p>Bu sayfayı görmek için admin hesabıyla giriş yapmalısınız.</p>
+        <a href="/index.html">Giriş ekranına git</a>
+      </section>
+
+      <section id="adminDashboard" class="panel admin-dashboard hidden">
+        <div class="admin-dashboard-head">
+          <div>
+            <p class="eyebrow">Üyelikler</p>
+            <h2>Kayıtlı Kullanıcılar</h2>
+          </div>
+          <div class="admin-tools">
+            <input id="adminSearch" type="search" placeholder="Kullanıcı ara" />
+            <button id="refreshAdminButton" type="button">Yenile</button>
+          </div>
+        </div>
+
+        <div class="admin-metrics">
+          <div>
+            <span id="adminTotalUsers">0</span>
+            <small>Toplam kullanıcı</small>
+          </div>
+          <div>
+            <span id="adminProUsers">0</span>
+            <small>Pro kullanıcı</small>
+          </div>
+          <div>
+            <span id="adminFreeUsers">0</span>
+            <small>Free kullanıcı</small>
+          </div>
+        </div>
+
+        <form id="adminCreateForm" class="admin-create-form">
+          <h3>Kullanıcı Ekle</h3>
+          <input id="adminCreateName" type="text" placeholder="Ad Soyad" autocomplete="off" />
+          <input id="adminCreateEmail" type="email" placeholder="E-posta" autocomplete="off" />
+          <input id="adminCreatePassword" type="password" placeholder="Geçici şifre" autocomplete="new-password" />
+          <select id="adminCreatePlan">
+            <option value="free">Free</option>
+            <option value="pro">Pro</option>
+          </select>
+          <button type="submit">Kullanıcı Ekle</button>
+        </form>
+
+        <div id="adminTable" class="admin-table"></div>
+        <small id="adminStatus" class="panel-note">Kullanıcılar yükleniyor.</small>
+      </section>
+    </main>
+
+    <script src="admin.js"></script>
+  </body>
+</html>
