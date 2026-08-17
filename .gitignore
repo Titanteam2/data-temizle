@@ -18,5 +18,6 @@ pnpm-debug.log*
 # Build/cache output
 dist/
 build/
+public/
 .cache/
 .vercel/

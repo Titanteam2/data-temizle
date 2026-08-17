@@ -37,6 +37,7 @@ Can, Toprak, , abc, Istanbul, 700`;
 
 const els = {
   appError: document.querySelector("#appError"),
+  toastStack: document.querySelector("#toastStack"),
   fileInput: document.querySelector("#fileInput"),
   uploadZone: document.querySelector(".upload-zone"),
   uploadStatus: document.querySelector("#uploadStatus"),
@@ -223,6 +224,31 @@ function showAppError(message) {
   window.setTimeout(() => els.appError.classList.add("hidden"), 7000);
 }
 
+function showToast(message, type = "info", title = "") {
+  if (!els.toastStack) {
+    console[type === "error" ? "error" : "log"](message);
+    return;
+  }
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${type}`;
+  toast.setAttribute("role", type === "error" ? "alert" : "status");
+  toast.innerHTML = `
+    <span class="toast-dot" aria-hidden="true"></span>
+    <span class="toast-content">
+      ${title ? `<strong>${escapeHtml(title)}</strong>` : ""}
+      <span>${escapeHtml(message)}</span>
+    </span>
+    <button class="toast-close" type="button" aria-label="Bildirimi kapat">×</button>
+  `;
+  const close = () => {
+    toast.classList.add("is-hiding");
+    window.setTimeout(() => toast.remove(), 180);
+  };
+  toast.querySelector(".toast-close").addEventListener("click", close);
+  els.toastStack.append(toast);
+  window.setTimeout(close, type === "error" ? 7200 : 5200);
+}
+
 function initTheme() {
   const savedTheme = localStorage.getItem("listfix-theme");
   const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
@@ -280,15 +306,15 @@ async function login() {
   const password = els.authPassword.value;
   const name = els.authName.value.trim();
   if (!email) {
-    alert("Giriş için e-posta adresi yazın.");
+    showToast("Giriş için e-posta adresi yazın.", "warning", "Eksik bilgi");
     return;
   }
   if (password.length < 6) {
-    alert("Şifre en az 6 karakter olmalı.");
+    showToast("Şifre en az 6 karakter olmalı.", "warning", "Eksik bilgi");
     return;
   }
   if (state.authMode === "register" && !name) {
-    alert("Kayıt için ad soyad yazın.");
+    showToast("Kayıt için ad soyad yazın.", "warning", "Eksik bilgi");
     return;
   }
 
@@ -304,7 +330,7 @@ async function login() {
     if (!data.user) {
       state.user = null;
       state.authError = data.message || "Kayıt alındı. Devam etmek için e-postanızı doğrulayın.";
-      alert(state.authError);
+      showToast(state.authError, "success", "Kayıt alındı");
       setAuthMode("login");
       return;
     }
@@ -313,10 +339,11 @@ async function login() {
     els.authEmail.value = data.user.email;
     els.authPassword.value = "";
     setAuthMode("login");
+    showToast("Giriş başarılı. Artık dosyalarınız hesabınıza bağlı çalışır.", "success", "Hoş geldiniz");
     render();
   } catch (error) {
     state.authError = error.message;
-    alert(error.message);
+    showToast(error.message, "error", "İşlem tamamlanamadı");
   } finally {
     state.authLoading = false;
     updatePlanState();
@@ -354,7 +381,7 @@ async function upgradeDemo() {
     render();
   } catch (error) {
     state.authError = error.message;
-    alert(error.message);
+    showToast(error.message, "error", "İşlem tamamlanamadı");
   } finally {
     state.authLoading = false;
     updatePlanState();
@@ -366,7 +393,7 @@ async function loadFileWithStatus(file) {
   const validationError = validateUploadFile(file);
   if (validationError) {
     setUploadStatus("error", validationError);
-    alert(validationError);
+    showToast(validationError, "warning", "Dosya yüklenemedi");
     return;
   }
 
@@ -385,7 +412,7 @@ async function loadFileWithStatus(file) {
     console.error(error);
     const message = error.message || "Dosya okunamadı. Lütfen dosya formatını kontrol edin.";
     setUploadStatus("error", message);
-    alert(message);
+    showToast(message, "error", "Dosya okunamadı");
   } finally {
     els.uploadZone.classList.remove("is-loading", "is-dragging");
   }
@@ -408,7 +435,7 @@ function runHeavyAction(message, action) {
     } catch (error) {
       console.error(error);
       setUploadStatus("error", "İşlem tamamlanamadı");
-      alert(error.message || "İşlem tamamlanamadı.");
+      showToast(error.message || "İşlem tamamlanamadı.", "error", "İşlem tamamlanamadı");
     } finally {
       els.uploadZone.classList.remove("is-loading");
       updatePlanState();
@@ -467,7 +494,7 @@ function loadCsv(text, fileName) {
 async function loadExcel(file) {
   const xlsx = window.XLSX;
   if (!xlsx) {
-    alert("Excel desteği yüklenemedi. xlsx.full.min.js dosyasını kontrol edin.");
+    showToast("Excel desteği yüklenemedi. xlsx.full.min.js dosyasını kontrol edin.", "error", "Excel okunamadı");
     return;
   }
 
@@ -475,7 +502,7 @@ async function loadExcel(file) {
   const workbook = xlsx.read(data, { type: "array" });
   const firstSheetName = workbook.SheetNames[0];
   if (!firstSheetName) {
-    alert("Excel dosyasında okunabilir sayfa bulunamadı.");
+    showToast("Excel dosyasında okunabilir sayfa bulunamadı.", "warning", "Excel okunamadı");
     return;
   }
 
@@ -807,7 +834,7 @@ function applySelectedPhoneFormat() {
   if (!canUseFreeRows()) return showPlanLimitMessage();
   const fields = detectFields();
   if (fields.phone < 0) {
-    alert("Telefon kolonu bulunamadı. Kolon adında Telefon, GSM, Mobile veya Cep gibi bir başlık olmalı.");
+    showToast("Kolon adında Telefon, GSM, Mobile veya Cep gibi bir başlık olmalı.", "warning", "Telefon kolonu bulunamadı");
     return;
   }
 
@@ -1273,12 +1300,12 @@ function downloadNeedsPro(format, scope) {
 }
 
 function showPlanLimitMessage() {
-  alert(`Ücretsiz paket ${FREE_ROW_LIMIT.toLocaleString("tr-TR")} satıra kadar çalışır. Daha büyük dosyalar için Pro üyelik gerekir.`);
+  showToast(`Ücretsiz paket ${FREE_ROW_LIMIT.toLocaleString("tr-TR")} satıra kadar çalışır. Daha büyük dosyalar için Pro üyelik gerekir.`, "warning", "Paket limiti");
 }
 
 function showProRequiredMessage(message) {
   const suffix = state.user ? "Bu hesabı Pro yapmanız gerekir." : "Önce giriş yapıp Pro üyelik tanımlamanız gerekir.";
-  alert(`${message}\n\n${suffix}`);
+  showToast(`${message} ${suffix}`, "warning", "Pro gerekli");
 }
 
 function updateColumnsPanelState() {
@@ -1991,7 +2018,7 @@ function downloadXlsx(headers, rows, suffix) {
   if (!isProPlan()) return showProRequiredMessage("Excel çıktısı Pro pakette kullanılabilir.");
   const xlsx = window.XLSX;
   if (!xlsx) {
-    alert("Excel çıktısı hazırlanamadı. xlsx.full.min.js dosyasını kontrol edin.");
+    showToast("Excel çıktısı hazırlanamadı. xlsx.full.min.js dosyasını kontrol edin.", "error", "Excel hazırlanamadı");
     return;
   }
 
@@ -2023,7 +2050,7 @@ function downloadSplitXlsx() {
 function buildXlsxBytes(headers, rows) {
   const xlsx = window.XLSX;
   if (!xlsx) {
-    alert("Excel çıktısı hazırlanamadı. xlsx.full.min.js dosyasını kontrol edin.");
+    showToast("Excel çıktısı hazırlanamadı. xlsx.full.min.js dosyasını kontrol edin.", "error", "Excel hazırlanamadı");
     return new Uint8Array();
   }
 
