@@ -21,6 +21,10 @@ function normalizeEmail(email) {
   return String(email || "").trim().toLocaleLowerCase("tr-TR");
 }
 
+function normalizePromoCode(code) {
+  return String(code || "").trim().toLocaleUpperCase("tr-TR").replace(/\s+/g, "");
+}
+
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -145,6 +149,82 @@ async function updateUserPlan(userId, plan) {
   return publicUser(data);
 }
 
+function publicPromoCode(promoCode) {
+  if (!promoCode) return null;
+  return {
+    id: promoCode.id,
+    code: promoCode.code,
+    trialDays: Number(promoCode.trial_days || 0),
+    maxRedemptions: Number(promoCode.max_redemptions || 0),
+    redeemedCount: Number(promoCode.redeemed_count || 0),
+    expiresAt: promoCode.expires_at,
+    active: promoCode.active !== false,
+    createdAt: promoCode.created_at,
+    updatedAt: promoCode.updated_at,
+  };
+}
+
+async function listPromoCodes() {
+  const rows = await supabaseFetch(
+    "/rest/v1/promo_codes?select=*&order=created_at.desc",
+    { method: "GET" },
+    true,
+  );
+  return (rows || []).map(publicPromoCode);
+}
+
+async function createPromoCode({ code, trialDays, maxRedemptions, expiresAt, active }) {
+  const normalizedCode = normalizePromoCode(code);
+  if (!/^[A-ZÇĞİÖŞÜ0-9_-]{3,32}$/.test(normalizedCode)) {
+    const error = new Error("Kod 3-32 karakter olmalı; harf, rakam, tire veya alt çizgi kullanın.");
+    error.status = 400;
+    throw error;
+  }
+  const trialDaysNumber = clampNumber(trialDays, 1, 365);
+  const maxRedemptionsNumber = clampNumber(maxRedemptions, 1, 100000);
+  const rows = await supabaseFetch(
+    "/rest/v1/promo_codes",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify({
+        code: normalizedCode,
+        trial_days: trialDaysNumber,
+        max_redemptions: maxRedemptionsNumber,
+        expires_at: expiresAt || null,
+        active: active !== false,
+      }),
+    },
+    true,
+  );
+  return publicPromoCode(rows?.[0]);
+}
+
+async function findPromoCode(code) {
+  const normalizedCode = normalizePromoCode(code);
+  const rows = await supabaseFetch(
+    `/rest/v1/promo_codes?select=*&code=eq.${encodeURIComponent(normalizedCode)}&limit=1`,
+    { method: "GET" },
+    true,
+  );
+  return publicPromoCode(rows?.[0]);
+}
+
+function isPromoCodeUsable(promoCode) {
+  if (!promoCode?.active) return false;
+  if (promoCode.expiresAt && new Date(promoCode.expiresAt).getTime() < Date.now()) return false;
+  return Number(promoCode.redeemedCount || 0) < Number(promoCode.maxRedemptions || 0);
+}
+
+function clampNumber(value, min, max) {
+  const number = Number.parseInt(value, 10);
+  if (!Number.isFinite(number)) return min;
+  return Math.min(Math.max(number, min), max);
+}
+
 async function deleteUser(userId) {
   await supabaseFetch(`/auth/v1/admin/users/${encodeURIComponent(userId)}`, { method: "DELETE" }, true);
 }
@@ -238,14 +318,19 @@ module.exports = {
   FILE_BUCKET,
   REFRESH_COOKIE,
   cleanupExpiredFiles,
+  createPromoCode,
   createUser,
   deleteUser,
+  findPromoCode,
   findUserByEmail,
   getUserByToken,
   isSupabaseConfigured,
+  isPromoCodeUsable,
   isValidEmail,
+  listPromoCodes,
   listUsers,
   normalizeEmail,
+  normalizePromoCode,
   publicUser,
   signIn,
   signUp,

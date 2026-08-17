@@ -13,13 +13,18 @@ const {
   REFRESH_COOKIE,
   cleanupExpiredFiles,
   createUser: supabaseCreateUser,
+  createPromoCode: supabaseCreatePromoCode,
   deleteUser: supabaseDeleteUser,
+  findPromoCode: supabaseFindPromoCode,
   findUserByEmail: supabaseFindUserByEmail,
   getUserByToken,
   isSupabaseConfigured,
+  isPromoCodeUsable: supabaseIsPromoCodeUsable,
   isValidEmail,
+  listPromoCodes: supabaseListPromoCodes,
   listUsers: supabaseListUsers,
   normalizeEmail,
+  normalizePromoCode: supabaseNormalizePromoCode,
   publicUser,
   signIn,
   signUp,
@@ -166,6 +171,29 @@ function getMinimumPasswordLength() {
   return isSupabaseConfigured(false) ? 8 : 6;
 }
 
+function isIyzicoConfigured() {
+  return Boolean(process.env.IYZICO_API_KEY && process.env.IYZICO_SECRET_KEY && process.env.IYZICO_BASE_URL);
+}
+
+function getPromoHelpers() {
+  if (isSupabaseConfigured(true)) {
+    return {
+      createPromoCode: supabaseCreatePromoCode,
+      findPromoCode: supabaseFindPromoCode,
+      isPromoCodeUsable: supabaseIsPromoCodeUsable,
+      listPromoCodes: supabaseListPromoCodes,
+      normalizePromoCode: supabaseNormalizePromoCode,
+    };
+  }
+  return {
+    createPromoCode: localAuth.createPromoCode,
+    findPromoCode: localAuth.findPromoCode,
+    isPromoCodeUsable: localAuth.isPromoCodeUsable,
+    listPromoCodes: localAuth.listPromoCodes,
+    normalizePromoCode: localAuth.normalizePromoCode,
+  };
+}
+
 async function handleApi(req, res, pathname) {
   const corsHeaders = getCorsHeaders(req);
 
@@ -236,6 +264,31 @@ async function handleApi(req, res, pathname) {
     if (!currentUser) return setJson(res, 401, { error: "Pro tanımlamak için önce giriş yapın." }, corsHeaders);
     const user = localAuth.setUserPlan(currentUser.email, "pro");
     return setJson(res, 200, { user }, corsHeaders);
+  }
+
+  if (pathname === "/api/pro-trial/start" && req.method === "POST") {
+    const currentUser = await getCurrentUser(req);
+    if (!currentUser) return setJson(res, 401, { error: "Promosyon kodu kullanmak için önce giriş yapın." }, corsHeaders);
+    const body = await readJsonBody(req);
+    const helpers = getPromoHelpers();
+    const code = helpers.normalizePromoCode(body.code);
+    if (!code) return setJson(res, 400, { error: "Promosyon kodu girin." }, corsHeaders);
+    const promoCode = await helpers.findPromoCode(code);
+    if (!helpers.isPromoCodeUsable(promoCode)) {
+      return setJson(res, 400, { error: "Promosyon kodu geçersiz, süresi dolmuş veya kullanım limiti bitmiş." }, corsHeaders);
+    }
+    if (!isIyzicoConfigured()) {
+      return setJson(res, 200, {
+        ok: true,
+        paymentReady: false,
+        promoCode,
+        message: `${promoCode.trialDays} günlük Pro deneme kodu geçerli. Iyzico bağlanınca kart doğrulama ekranına yönlendirilecek.`,
+      }, corsHeaders);
+    }
+    return setJson(res, 501, {
+      error: "Iyzico ödeme bağlantısı bir sonraki adımda aktif edilecek.",
+      promoCode,
+    }, corsHeaders);
   }
 
   if (pathname === "/api/files/upload" && req.method === "POST") {
@@ -322,6 +375,28 @@ async function handleApi(req, res, pathname) {
     }
     const users = isSupabaseConfigured(true) ? await supabaseListUsers() : localAuth.listUsers();
     return setJson(res, 200, { ok: true, users }, corsHeaders);
+  }
+
+  if (pathname === "/api/admin/promo-codes" && req.method === "GET") {
+    const currentUser = await getCurrentUser(req);
+    if (!currentUser?.isAdmin) return setJson(res, 403, { error: "Bu alan için yönetici yetkisi gerekir." }, corsHeaders);
+    const promoCodes = await getPromoHelpers().listPromoCodes();
+    return setJson(res, 200, { promoCodes }, corsHeaders);
+  }
+
+  if (pathname === "/api/admin/promo-codes" && req.method === "POST") {
+    const currentUser = await getCurrentUser(req);
+    if (!currentUser?.isAdmin) return setJson(res, 403, { error: "Bu alan için yönetici yetkisi gerekir." }, corsHeaders);
+    const body = await readJsonBody(req);
+    const promoCode = await getPromoHelpers().createPromoCode({
+      code: body.code,
+      trialDays: body.trialDays,
+      maxRedemptions: body.maxRedemptions,
+      expiresAt: body.expiresAt,
+      active: body.active !== false,
+    });
+    const promoCodes = await getPromoHelpers().listPromoCodes();
+    return setJson(res, 200, { promoCode, promoCodes }, corsHeaders);
   }
 
   if (pathname === "/api/cron/cleanup-files" && ["GET", "POST"].includes(req.method)) {

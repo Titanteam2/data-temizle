@@ -76,6 +76,32 @@
         <div id="adminTable" class="admin-table"></div>
         <small id="adminStatus" class="panel-note">Kullanıcılar yükleniyor.</small>
       </section>
+
+      <section id="promoDashboard" class="panel admin-dashboard hidden">
+        <div class="admin-dashboard-head">
+          <div>
+            <p class="eyebrow">Promosyon</p>
+            <h2>İndirim Kodları</h2>
+          </div>
+          <button id="refreshPromoButton" type="button">Yenile</button>
+        </div>
+
+        <form id="promoCreateForm" class="admin-create-form promo-create-form">
+          <h3>Kod Oluştur</h3>
+          <input id="promoCreateCode" type="text" placeholder="Kod: AJANS30" autocomplete="off" />
+          <input id="promoTrialDays" type="number" min="1" max="365" step="1" value="30" placeholder="Pro gün sayısı" />
+          <input id="promoMaxRedemptions" type="number" min="1" step="1" value="100" placeholder="Kullanım limiti" />
+          <input id="promoExpiresAt" type="date" />
+          <label class="check-row promo-active-row">
+            <input id="promoActive" type="checkbox" checked />
+            <span>Aktif</span>
+          </label>
+          <button type="submit">Kod Oluştur</button>
+        </form>
+
+        <div id="promoTable" class="admin-table"></div>
+        <small id="promoStatus" class="panel-note">Promosyon kodları yükleniyor.</small>
+      </section>
     </main>
 
     <script src="admin.js"></script>

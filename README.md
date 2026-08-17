@@ -65,6 +65,10 @@ SUPABASE_STORAGE_BUCKET=uploads
 MAX_UPLOAD_BYTES=52428800
 FILE_RETENTION_DAYS=7
 CRON_SECRET=replace-with-a-long-random-string
+IYZICO_API_KEY=your-iyzico-api-key
+IYZICO_SECRET_KEY=your-iyzico-secret-key
+IYZICO_BASE_URL=https://sandbox-api.iyzipay.com
+IYZICO_PRO_PRICE_ID=
 ```
 
 `SUPABASE_SERVICE_ROLE_KEY` sadece backend/serverless fonksiyonlarda kullanılır. Frontend dosyalarına yazılmamalıdır.
@@ -79,6 +83,12 @@ CRON_SECRET=replace-with-a-long-random-string
 6. İlk admin için Vercel env içinde `ADMIN_EMAIL` değerini belirleyin.
 
 Dosya kayıtları `public.file_uploads` tablosunda tutulur. Dosyaların kendisi private `uploads` bucket içinde `user_id/tarih/dosya` path'iyle saklanır.
+
+## Promosyon Kodları
+
+Yönetici panelinden 15/30 günlük Pro deneme kodları oluşturulabilir. Kullanıcı kodu üyelik panelinden girer. Iyzico bağlantısı tamamlanana kadar kod sadece doğrulanır; kart doğrulama ve otomatik abonelik adımı ödeme entegrasyonu bağlandıktan sonra aktif edilir.
+
+Supabase tarafında `promo_codes` ve `promo_code_redemptions` tabloları `supabase/schema.sql` içinde yer alır. Yeni kurulumda SQL dosyasını çalıştırın; mevcut kurulumda bu dosyadaki promosyon tabloları bölümünü Supabase SQL Editor içinde ayrıca çalıştırabilirsiniz.
 
 ## GitHub Hazırlığı
 

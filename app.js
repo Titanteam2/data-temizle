@@ -59,6 +59,9 @@ const els = {
   loginButton: document.querySelector("#loginButton"),
   logoutButton: document.querySelector("#logoutButton"),
   upgradeDemoButton: document.querySelector("#upgradeDemoButton"),
+  promoCodeInput: document.querySelector("#promoCodeInput"),
+  promoCodeButton: document.querySelector("#promoCodeButton"),
+  promoStatus: document.querySelector("#promoStatus"),
   planStatus: document.querySelector("#planStatus"),
   usageLimitCard: document.querySelector("#usageLimitCard"),
   usageLimitLabel: document.querySelector("#usageLimitLabel"),
@@ -158,6 +161,7 @@ els.authModeButtons.forEach((button) => {
 els.loginButton.addEventListener("click", login);
 els.logoutButton.addEventListener("click", logout);
 els.upgradeDemoButton.addEventListener("click", upgradeDemo);
+els.promoCodeButton.addEventListener("click", startPromoTrial);
 els.applyClean.addEventListener("click", () => runHeavyAction("Veri temizleniyor", cleanData));
 els.applyRecipeButton.addEventListener("click", applyCleanRecipe);
 els.undoButton.addEventListener("click", undoLastAction);
@@ -386,6 +390,40 @@ async function upgradeDemo() {
     state.authLoading = false;
     updatePlanState();
     updateDownloadControls();
+  }
+}
+
+async function startPromoTrial() {
+  const code = els.promoCodeInput.value.trim();
+  if (!state.user) {
+    showToast("Promosyon kodu kullanmak için önce giriş yapın.", "warning", "Giriş gerekli");
+    return;
+  }
+  if (!code) {
+    showToast("Promosyon kodunu yazın.", "warning", "Eksik bilgi");
+    return;
+  }
+
+  state.authLoading = true;
+  els.promoStatus.textContent = "Kod kontrol ediliyor.";
+  updatePlanState();
+  try {
+    const data = await apiFetch("/api/pro-trial/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+    els.promoStatus.textContent = data.message || "Kod geçerli. Kart doğrulama adımı hazırlanıyor.";
+    showToast(els.promoStatus.textContent, "success", "Promosyon kodu geçerli");
+    if (data.checkoutUrl) {
+      window.location.href = data.checkoutUrl;
+    }
+  } catch (error) {
+    els.promoStatus.textContent = error.message;
+    showToast(error.message, "error", "Kod kullanılamadı");
+  } finally {
+    state.authLoading = false;
+    updatePlanState();
   }
 }
 
@@ -1173,6 +1211,8 @@ function updatePlanState() {
   els.loginButton.disabled = state.authLoading;
   els.logoutButton.disabled = state.authLoading;
   els.upgradeDemoButton.disabled = state.authLoading;
+  els.promoCodeInput.disabled = state.authLoading || !state.user || isProPlan();
+  els.promoCodeButton.disabled = state.authLoading || !state.user || isProPlan();
   els.loginButton.classList.toggle("hidden", Boolean(state.user));
   els.logoutButton.classList.toggle("hidden", !state.user);
   els.upgradeDemoButton.classList.toggle("hidden", !state.user || isProPlan());
@@ -1193,14 +1233,22 @@ function updatePlanState() {
     els.planStatus.textContent = state.authMode === "register"
       ? "Yeni hesap ücretsiz başlar. Pro özellikler ödeme bağlanınca lisansla açılır."
       : "Hesabınız varsa giriş yapın; yoksa Kayıt Ol sekmesini kullanın.";
+    els.promoStatus.textContent = "Promosyon kodu kullanmak için önce giriş yapın.";
   } else if (freeLimitReached) {
     els.planStatus.textContent = `${state.rows.length.toLocaleString("tr-TR")} satır yüklendi. Ücretsiz paket 1.000 satıra kadar çalışır; Pro lisans gerekir.`;
   } else if (isProPlan()) {
     els.planStatus.textContent = `Pro aktif: ${accountLabel}`;
+    els.promoStatus.textContent = "Pro hesabınız aktif olduğu için promosyon kodu gerekmez.";
   } else if (!hasRows) {
     els.planStatus.textContent = `Ücretsiz hesap: ${accountLabel}`;
+    if (!els.promoStatus.textContent || els.promoStatus.textContent.includes("giriş yapın")) {
+      els.promoStatus.textContent = "Kod geçerliyse kart doğrulama adımına geçilir.";
+    }
   } else {
     els.planStatus.textContent = `${state.rows.length.toLocaleString("tr-TR")} / ${FREE_ROW_LIMIT.toLocaleString("tr-TR")} satır kullanılıyor. Excel, ZIP, SMS ve segment indirme Pro özelliği olarak gösterilir.`;
+    if (!els.promoStatus.textContent || els.promoStatus.textContent.includes("giriş yapın")) {
+      els.promoStatus.textContent = "Kod geçerliyse kart doğrulama adımına geçilir.";
+    }
   }
 
   els.applyClean.disabled = !canUseBasic;
