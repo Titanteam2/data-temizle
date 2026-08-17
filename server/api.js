@@ -141,6 +141,27 @@ function validateUploadedFile(file) {
   return "";
 }
 
+function getFriendlyApiError(error) {
+  const message = String(error?.message || "");
+  const normalized = message.toLocaleLowerCase("en-US");
+  if (normalized.includes("email rate limit")) {
+    return "Kısa sürede çok fazla doğrulama e-postası istendi. Lütfen birkaç dakika sonra tekrar deneyin.";
+  }
+  if (normalized.includes("rate limit")) {
+    return "Çok fazla deneme yapıldı. Lütfen birkaç dakika sonra tekrar deneyin.";
+  }
+  if (normalized.includes("invalid login credentials")) {
+    return "E-posta veya şifre hatalı.";
+  }
+  if (normalized.includes("email not confirmed")) {
+    return "Giriş yapmadan önce e-posta adresinizi doğrulamanız gerekiyor.";
+  }
+  if (normalized.includes("user already registered") || normalized.includes("already registered")) {
+    return "Bu e-posta adresiyle daha önce kayıt olunmuş. Giriş yapmayı deneyin.";
+  }
+  return message || "İşlem tamamlanamadı.";
+}
+
 function getMinimumPasswordLength() {
   return isSupabaseConfigured(false) ? 8 : 6;
 }
@@ -320,14 +341,16 @@ async function safeHandleApi(req, res, pathname) {
   try {
     await handleApi(req, res, pathname);
   } catch (error) {
+    const friendlyError = getFriendlyApiError(error);
     console.error(JSON.stringify({
       level: "error",
       message: error.message,
+      friendlyMessage: friendlyError,
       path: pathname,
       status: error.status || 500,
     }));
     setJson(res, error.status || 500, {
-      error: error.status && error.status < 500 ? error.message : "Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.",
+      error: error.status && error.status < 500 ? friendlyError : "Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.",
     }, getCorsHeaders(req));
   }
 }
