@@ -7,6 +7,8 @@ function rateLimit(req, key, options = {}) {
   const bucketKey = `${key}:${options.identity || "anon"}`;
   const current = buckets.get(bucketKey);
 
+  pruneExpiredBuckets(now);
+
   if (!current || current.resetAt <= now) {
     buckets.set(bucketKey, { count: 1, resetAt: now + windowMs });
     return { ok: true, remaining: limit - 1, resetAt: now + windowMs };
@@ -18,6 +20,13 @@ function rateLimit(req, key, options = {}) {
     remaining: Math.max(0, limit - current.count),
     resetAt: current.resetAt,
   };
+}
+
+function pruneExpiredBuckets(now) {
+  if (buckets.size < 1000) return;
+  for (const [key, bucket] of buckets.entries()) {
+    if (bucket.resetAt <= now) buckets.delete(key);
+  }
 }
 
 module.exports = { rateLimit };

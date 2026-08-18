@@ -46,8 +46,33 @@ const allowedMimeTypes = new Set([
 function checkRateLimit(req, res, key, options) {
   const result = rateLimit(req, key, { ...options, identity: getClientIp(req) });
   if (result.ok) return true;
-  setJson(res, 429, { error: "Çok fazla istek gönderildi. Lütfen biraz sonra tekrar deneyin." }, getCorsHeaders(req));
+  const retryAfter = Math.max(1, Math.ceil((result.resetAt - Date.now()) / 1000));
+  setJson(
+    res,
+    429,
+    { error: "Çok fazla istek gönderildi. Lütfen biraz sonra tekrar deneyin." },
+    { ...getCorsHeaders(req), "Retry-After": String(retryAfter) },
+  );
   return false;
+}
+
+function getRateLimitPolicy(pathname) {
+  if (["/api/login", "/api/register"].includes(pathname)) {
+    return { key: "auth", limit: 10, windowMs: 5 * 60_000 };
+  }
+  if (pathname === "/api/pro-trial/start") {
+    return { key: "promo", limit: 8, windowMs: 5 * 60_000 };
+  }
+  if (pathname === "/api/files/upload") {
+    return { key: "upload", limit: 12, windowMs: 5 * 60_000 };
+  }
+  if (pathname.startsWith("/api/admin/")) {
+    return { key: "admin", limit: 60, windowMs: 60_000 };
+  }
+  if (pathname === "/api/cron/cleanup-files") {
+    return { key: "cron", limit: 10, windowMs: 60_000 };
+  }
+  return { key: "api", limit: 120, windowMs: 60_000 };
 }
 
 async function getCurrentUser(req) {
@@ -203,7 +228,8 @@ async function handleApi(req, res, pathname) {
     return;
   }
 
-  if (!checkRateLimit(req, res, pathname, { limit: pathname.includes("/upload") ? 20 : 90, windowMs: 60_000 })) return;
+  const ratePolicy = getRateLimitPolicy(pathname);
+  if (!checkRateLimit(req, res, ratePolicy.key, ratePolicy)) return;
 
   if (pathname === "/api/health" && req.method === "GET") {
     const supabase = isSupabaseConfigured(false);
