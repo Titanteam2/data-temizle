@@ -77,3 +77,12 @@ using ((select auth.uid()) = user_id);
 create index if not exists promo_codes_code_idx on public.promo_codes(code);
 create index if not exists promo_codes_active_idx on public.promo_codes(active);
 create index if not exists promo_code_redemptions_user_id_idx on public.promo_code_redemptions(user_id);
+
+-- One-time hardening for older accounts:
+-- Move plan claims from user-editable user metadata into server-managed app metadata.
+update auth.users
+set raw_app_meta_data =
+  coalesce(raw_app_meta_data, '{}'::jsonb) ||
+  jsonb_build_object('plan', raw_user_meta_data ->> 'plan')
+where raw_user_meta_data ? 'plan'
+  and (raw_app_meta_data ->> 'plan') is null;

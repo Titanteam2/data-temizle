@@ -155,6 +155,18 @@ Kontroller:
 - Kullanıcı dosyaları Supabase Storage içinde kullanıcı ID'sine göre ayrılır.
 - Supabase service role key sadece serverless fonksiyonlarda kullanılmalıdır.
 - Admin yetkisi `ADMIN_EMAIL` veya Supabase `app_metadata.role = admin` ile belirlenir.
+- Kullanıcı planı sadece Supabase `app_metadata.plan` alanından okunur; kullanıcı tarafından değiştirilebilen `user_metadata` yetki/plan için kullanılmaz.
+
+Mevcut eski kullanıcıların `user_metadata.plan` bilgisini güvenli alana taşımak için Supabase SQL Editor'da tek seferlik şu sorgu çalıştırılabilir:
+
+```sql
+update auth.users
+set raw_app_meta_data =
+  coalesce(raw_app_meta_data, '{}'::jsonb) ||
+  jsonb_build_object('plan', raw_user_meta_data ->> 'plan')
+where raw_user_meta_data ? 'plan'
+  and (raw_app_meta_data ->> 'plan') is null;
+```
 
 ## Deploy Öncesi Kontrol Listesi
 

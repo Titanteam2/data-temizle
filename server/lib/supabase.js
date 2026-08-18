@@ -64,7 +64,7 @@ async function signUp({ email, password, name }) {
     body: JSON.stringify({
       email,
       password,
-      data: { name, plan: "free" },
+      data: { name },
     }),
   });
 }
@@ -101,7 +101,7 @@ function publicUser(user) {
     id: user.id,
     name: metadata.name || "",
     email,
-    plan: metadata.plan === "pro" || appMetadata.plan === "pro" ? "pro" : "free",
+    plan: appMetadata.plan === "pro" ? "pro" : "free",
     isAdmin: appMetadata.role === "admin" || email === adminEmail,
     createdAt: user.created_at,
     updatedAt: user.updated_at,
@@ -123,7 +123,8 @@ async function createUser({ email, password, name, plan }) {
         email,
         password,
         email_confirm: true,
-        user_metadata: { name, plan },
+        user_metadata: { name },
+        app_metadata: { plan },
       }),
     },
     true,
@@ -142,7 +143,7 @@ async function updateUserPlan(userId, plan) {
     {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_metadata: { plan } }),
+      body: JSON.stringify({ app_metadata: { plan } }),
     },
     true,
   );
