@@ -96,13 +96,12 @@ function publicUser(user) {
   const metadata = user.user_metadata || {};
   const appMetadata = user.app_metadata || {};
   const email = normalizeEmail(user.email);
-  const adminEmail = normalizeEmail(process.env.ADMIN_EMAIL || "");
   return {
     id: user.id,
     name: metadata.name || "",
     email,
     plan: appMetadata.plan === "pro" ? "pro" : "free",
-    isAdmin: appMetadata.role === "admin" || email === adminEmail,
+    isAdmin: appMetadata.role === "admin",
     createdAt: user.created_at,
     updatedAt: user.updated_at,
   };
@@ -137,13 +136,19 @@ async function findUserByEmail(email) {
   return users.find((user) => user.email === normalizeEmail(email)) || null;
 }
 
+async function getAdminUserById(userId) {
+  return supabaseFetch(`/auth/v1/admin/users/${encodeURIComponent(userId)}`, { method: "GET" }, true);
+}
+
 async function updateUserPlan(userId, plan) {
+  const existingUser = await getAdminUserById(userId);
+  const appMetadata = existingUser?.app_metadata || {};
   const data = await supabaseFetch(
     `/auth/v1/admin/users/${encodeURIComponent(userId)}`,
     {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ app_metadata: { plan } }),
+      body: JSON.stringify({ app_metadata: { ...appMetadata, plan } }),
     },
     true,
   );

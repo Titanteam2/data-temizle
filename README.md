@@ -80,7 +80,7 @@ IYZICO_PRO_PRICE_ID=
 3. `Authentication > Providers > Email` alanında e-posta/şifre girişini açın.
 4. `Authentication > URL Configuration` alanına site URL'si olarak `https://datatemizle.com` girin.
 5. `Storage` altında `uploads` bucket oluştuğunu kontrol edin.
-6. İlk admin için Vercel env içinde `ADMIN_EMAIL` değerini belirleyin.
+6. İlk admin için Supabase `auth.users.raw_app_meta_data` içine `role: admin` ekleyin.
 
 Dosya kayıtları `public.file_uploads` tablosunda tutulur. Dosyaların kendisi private `uploads` bucket içinde `user_id/tarih/dosya` path'iyle saklanır.
 
@@ -154,8 +154,18 @@ Kontroller:
 - Upload endpointi dosya tipi ve dosya boyutu kontrolü yapar.
 - Kullanıcı dosyaları Supabase Storage içinde kullanıcı ID'sine göre ayrılır.
 - Supabase service role key sadece serverless fonksiyonlarda kullanılmalıdır.
-- Admin yetkisi `ADMIN_EMAIL` veya Supabase `app_metadata.role = admin` ile belirlenir.
+- Production admin yetkisi sadece Supabase `app_metadata.role = admin` ile belirlenir. `ADMIN_EMAIL` yalnızca Supabase kapalıyken lokal geliştirme modu içindir.
 - Kullanıcı planı sadece Supabase `app_metadata.plan` alanından okunur; kullanıcı tarafından değiştirilebilen `user_metadata` yetki/plan için kullanılmaz.
+
+İlk admin hesabını tanımlamak için:
+
+```sql
+update auth.users
+set raw_app_meta_data =
+  coalesce(raw_app_meta_data, '{}'::jsonb) ||
+  jsonb_build_object('role', 'admin', 'plan', 'pro')
+where email = 'cantoprak2000@hotmail.com';
+```
 
 Mevcut eski kullanıcıların `user_metadata.plan` bilgisini güvenli alana taşımak için Supabase SQL Editor'da tek seferlik şu sorgu çalıştırılabilir:
 
@@ -176,7 +186,7 @@ where raw_user_meta_data ? 'plan'
 - Vercel env değişkenleri girildi.
 - Supabase SQL şeması çalıştırıldı.
 - `uploads` bucket private olarak mevcut.
-- `ADMIN_EMAIL` doğru admin adresi.
+- Supabase admin hesabında `raw_app_meta_data.role = admin` tanımlı.
 - Cloudflare DNS kayıtları Vercel'e yönleniyor.
 - Kayıt, giriş, dosya yükleme ve admin paneli production URL'de test edildi.
 - Cron cleanup endpointi Vercel Functions loglarında hata vermiyor.
