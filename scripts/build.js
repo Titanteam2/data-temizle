@@ -9,6 +9,7 @@ const staticFiles = [
   "account.html",
   "admin.html",
   "pricing.html",
+  "analytics-init.js",
   "app.js",
   "account.js",
   "admin.js",

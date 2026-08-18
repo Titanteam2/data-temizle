@@ -1,6 +1,9 @@
 const crypto = require("node:crypto");
 
 const securityHeaders = {
+  "Content-Security-Policy":
+    "default-src 'self'; script-src 'self' https://cdn.vercel-insights.com; connect-src 'self' https://vitals.vercel-insights.com https://*.vercel-insights.com; img-src 'self' data: blob:; style-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
   "Referrer-Policy": "strict-origin-when-cross-origin",
