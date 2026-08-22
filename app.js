@@ -496,7 +496,7 @@ async function loadFile(file) {
     throw new Error("Unsupported file type");
   }
 
-  const text = await file.text();
+  const text = await decodeCsvFile(file);
   loadCsv(text, file.name);
 }
 
@@ -531,6 +531,37 @@ function loadCsv(text, fileName) {
   const delimiter = detectDelimiter(text);
   const records = parseCsv(text, delimiter);
   loadRecords(records, fileName);
+}
+
+async function decodeCsvFile(file) {
+  const buffer = await file.arrayBuffer();
+  const encodings = ["utf-8", "windows-1254", "iso-8859-9"];
+  const decoded = encodings.map((encoding) => {
+    try {
+      const text = new TextDecoder(encoding).decode(buffer);
+      return { encoding, text: stripBom(text), score: countDecodeProblems(text) };
+    } catch {
+      return null;
+    }
+  }).filter(Boolean);
+
+  decoded.sort((a, b) => a.score - b.score);
+  const best = decoded[0];
+  if (best?.encoding && best.encoding !== "utf-8") {
+    showToast(`${file.name} ${best.encoding.toUpperCase()} olarak okundu.`, "info", "Türkçe karakterler düzeltildi");
+  }
+  return best?.text || stripBom(await file.text());
+}
+
+function stripBom(text) {
+  return String(text || "").replace(/^\uFEFF/, "");
+}
+
+function countDecodeProblems(text) {
+  const value = String(text || "");
+  const replacementChars = (value.match(/\uFFFD/g) || []).length * 100;
+  const mojibake = (value.match(/Ã.|Ä.|Å.|�/g) || []).length * 25;
+  return replacementChars + mojibake;
 }
 
 async function loadExcel(file) {
