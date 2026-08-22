@@ -19,6 +19,7 @@ const state = {
 
 const FREE_ROW_LIMIT = 1000;
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+const MAX_BACKGROUND_STORAGE_BYTES = 4 * 1024 * 1024;
 const allowedUploadExtensions = new Set(["csv", "xlsx", "xls"]);
 
 const exportTemplates = {
@@ -444,9 +445,20 @@ async function loadFileWithStatus(file) {
   try {
     await loadFile(file);
     if (state.user) {
-      setUploadStatus("loading", `${file.name} güvenli alana kaydediliyor`);
-      await uploadOriginalFile(file);
-      setUploadStatus("success", `${file.name} yüklendi ve hesabınıza kaydedildi`);
+      if (file.size > MAX_BACKGROUND_STORAGE_BYTES) {
+        setUploadStatus("success", `${file.name} yüklendi. Büyük dosya yerel işlendi.`);
+        showToast("Büyük dosya işlendi; güvenli arşiv kaydı atlandı.", "info", "Dosya hazır");
+      } else {
+        setUploadStatus("loading", `${file.name} güvenli alana kaydediliyor`);
+        try {
+          await uploadOriginalFile(file);
+          setUploadStatus("success", `${file.name} yüklendi ve hesabınıza kaydedildi`);
+        } catch (uploadError) {
+          console.warn(uploadError);
+          setUploadStatus("success", `${file.name} yüklendi. Güvenli arşiv kaydı yapılamadı.`);
+          showToast(uploadError.message || "Dosya işlendi ancak güvenli alana kaydedilemedi.", "warning", "Dosya hazır");
+        }
+      }
     } else {
       setUploadStatus("success", `${file.name} yerel olarak yüklendi`);
     }
@@ -516,15 +528,34 @@ async function uploadOriginalFile(file) {
     credentials: "include",
     body: formData,
   });
-  const data = await response.json().catch(() => ({}));
+  const rawResponse = await response.text();
+  const data = parseJsonResponse(rawResponse);
   if (!response.ok) {
-    const rawError = String(data.error || "");
-    const friendlyError = rawError.includes("Invalid key")
-      ? "Dosya adı güvenli alana uygun hale getirilemedi. Lütfen dosyayı tekrar yükleyin."
-      : rawError || "Dosya güvenli alana kaydedilemedi.";
-    throw new Error(friendlyError);
+    throw new Error(getUploadErrorMessage(response, data, rawResponse));
   }
   return data;
+}
+
+function parseJsonResponse(text) {
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return {};
+  }
+}
+
+function getUploadErrorMessage(response, data, rawResponse) {
+  const rawError = String(data.error || "");
+  const rawText = String(rawResponse || "").toLocaleLowerCase("tr-TR");
+  if (rawError.includes("Invalid key")) {
+    return "Dosya adı güvenli alana uygun hale getirilemedi. Lütfen dosyayı tekrar yükleyin.";
+  }
+  if (response.status === 401) return "Dosyayı güvenli alana kaydetmek için tekrar giriş yapın.";
+  if (response.status === 413) return "Dosya boyutu güvenli alana kaydetmek için çok büyük.";
+  if (response.status === 403 || rawText.includes("cloudflare") || rawText.includes("challenge")) {
+    return "Cloudflare dosya kaydetme isteğini engelledi. Lütfen upload güvenlik kuralını kontrol edin.";
+  }
+  return rawError || "Dosya güvenli alana kaydedilemedi.";
 }
 
 function loadCsv(text, fileName) {
