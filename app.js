@@ -572,7 +572,7 @@ async function loadExcel(file) {
   }
 
   const data = await file.arrayBuffer();
-  const workbook = xlsx.read(data, { type: "array" });
+  const workbook = xlsx.read(data, { type: "array", codepage: 1254 });
   const firstSheetName = workbook.SheetNames[0];
   if (!firstSheetName) {
     showToast("Excel dosyasında okunabilir sayfa bulunamadı.", "warning", "Excel okunamadı");
