@@ -141,6 +141,14 @@
             </select>
             <input id="downloadLimitManual" class="hidden" type="number" min="1" step="1" placeholder="Örn. 2500" />
           </div>
+          <div id="downloadFileNameGroup" class="download-option-group">
+            <label class="field-label" for="downloadFileName">Dosya adı</label>
+            <input id="downloadFileName" type="text" placeholder="Boşsa otomatik ad verilir" />
+          </div>
+          <div id="splitFilePrefixGroup" class="download-option-group">
+            <label class="field-label" for="splitFilePrefix">ZIP içindeki Excel dosya ön eki</label>
+            <input id="splitFilePrefix" type="text" placeholder="Örn. so chic bakım" />
+          </div>
           <div id="splitColumnGroup" class="download-option-group">
             <label class="field-label" for="splitColumn">Ayrı Excel kolonu</label>
             <select id="splitColumn"></select>
@@ -296,6 +304,6 @@
     </template>
 
     <script src="xlsx.full.min.js?v=20260822-3"></script>
-    <script src="app.js?v=20260831-1"></script>
+    <script src="app.js?v=20260831-2"></script>
   </body>
 </html>

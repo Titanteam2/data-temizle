@@ -94,6 +94,10 @@ const els = {
   downloadLimitGroup: document.querySelector("#downloadLimitGroup"),
   downloadLimit: document.querySelector("#downloadLimit"),
   downloadLimitManual: document.querySelector("#downloadLimitManual"),
+  downloadFileNameGroup: document.querySelector("#downloadFileNameGroup"),
+  downloadFileName: document.querySelector("#downloadFileName"),
+  splitFilePrefixGroup: document.querySelector("#splitFilePrefixGroup"),
+  splitFilePrefix: document.querySelector("#splitFilePrefix"),
   splitColumnGroup: document.querySelector("#splitColumnGroup"),
   splitColumn: document.querySelector("#splitColumn"),
   downloadInfo: document.querySelector("#downloadInfo"),
@@ -181,7 +185,7 @@ els.changePreview.addEventListener("click", (event) => {
 });
 els.downloadCenterButton.addEventListener("click", downloadFromCenter);
 ["change", "input"].forEach((eventName) => {
-  [els.downloadFormat, els.downloadScope, els.exportTemplate, els.downloadLimit, els.downloadLimitManual, els.splitColumn].forEach((control) => {
+  [els.downloadFormat, els.downloadScope, els.exportTemplate, els.downloadLimit, els.downloadLimitManual, els.downloadFileName, els.splitFilePrefix, els.splitColumn].forEach((control) => {
     control.addEventListener(eventName, updateDownloadControls);
   });
 });
@@ -1396,13 +1400,18 @@ function updateDownloadControls() {
   const showTemplate = format === "template";
   const showLimit = format !== "report";
   const showSplit = format === "splitZip";
+  const showFileName = ["csv", "xlsx", "template", "report"].includes(format);
 
   els.downloadScopeGroup.classList.toggle("hidden", !showScope);
   els.exportTemplateGroup.classList.toggle("hidden", !showTemplate);
   els.downloadLimitGroup.classList.toggle("hidden", !showLimit);
+  els.downloadFileNameGroup.classList.toggle("hidden", !showFileName);
+  els.splitFilePrefixGroup.classList.toggle("hidden", !showSplit);
   els.splitColumnGroup.classList.toggle("hidden", !showSplit);
   els.exportTemplate.disabled = format !== "template";
   els.downloadScope.disabled = ["report", "template", "splitZip"].includes(format);
+  els.downloadFileName.disabled = !showFileName;
+  els.splitFilePrefix.disabled = !showSplit;
   els.splitColumn.disabled = !state.headers.length;
   els.downloadLimit.disabled = format === "report";
   els.downloadLimitManual.classList.toggle("hidden", els.downloadLimit.value !== "manual");
@@ -2152,7 +2161,7 @@ function downloadRowsCsv(rows, suffix) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${getBaseFileName()}-${suffix}${getDownloadLimitSuffix(rows)}.csv`;
+  link.download = buildDownloadFileName(suffix, "csv", rows);
   document.body.append(link);
   link.click();
   link.remove();
@@ -2170,7 +2179,7 @@ function downloadXlsx(headers, rows, suffix) {
   const worksheet = xlsx.utils.aoa_to_sheet([headers, ...applyDownloadLimit(rows)]);
   const workbook = xlsx.utils.book_new();
   xlsx.utils.book_append_sheet(workbook, worksheet, "Veri");
-  xlsx.writeFile(workbook, `${getBaseFileName()}-${suffix}${getDownloadLimitSuffix(rows)}.xlsx`);
+  xlsx.writeFile(workbook, buildDownloadFileName(suffix, "xlsx", rows));
 }
 
 function downloadSplitXlsx() {
@@ -2181,14 +2190,15 @@ function downloadSplitXlsx() {
 
   const groups = groupRowsByColumn(columnIndex);
   const files = [...groups].map(([value, rows]) => {
+    const groupName = sanitizeFileNamePart(value) || "Bos";
     const suffix = `${slugify(state.headers[columnIndex])}-${slugify(value) || "bos"}`;
     return {
-      name: `${getBaseFileName()}-${suffix}${getDownloadLimitSuffix(rows)}.xlsx`,
+      name: buildSplitXlsxFileName(suffix, groupName, rows),
       data: buildXlsxBytes(state.headers, applyDownloadLimit(rows)),
     };
   });
   const zipBlob = createZipBlob(files);
-  downloadBlob(zipBlob, `${getBaseFileName()}-${slugify(state.headers[columnIndex])}-ayri-exceller.zip`);
+  downloadBlob(zipBlob, buildZipFileName(state.headers[columnIndex]));
   els.downloadInfo.textContent = `${files.length.toLocaleString("tr-TR")} Excel dosyası ZIP içinde hazırlandı${getDownloadLimitLabel()}.`;
 }
 
@@ -2342,6 +2352,40 @@ function getBaseFileName() {
   return (state.fileName || "veri").replace(/\.(csv|xlsx|xls)$/i, "");
 }
 
+function getDownloadFileBaseName() {
+  return sanitizeFileNamePart(els.downloadFileName.value) || slugify(getBaseFileName()) || "veri";
+}
+
+function getSplitFilePrefix() {
+  return sanitizeFileNamePart(els.splitFilePrefix.value);
+}
+
+function buildDownloadFileName(suffix, extension, rows = []) {
+  return `${getDownloadFileBaseName()}-${slugify(suffix) || "indirme"}${getDownloadLimitSuffix(rows)}.${extension}`;
+}
+
+function buildSplitXlsxFileName(defaultSuffix, groupName, rows = []) {
+  const prefix = getSplitFilePrefix();
+  const base = prefix ? `${prefix}-${groupName}` : `${slugify(getBaseFileName())}-${defaultSuffix}`;
+  return `${base}${getDownloadLimitSuffix(rows)}.xlsx`;
+}
+
+function buildZipFileName(splitHeader) {
+  const prefix = getSplitFilePrefix();
+  const base = prefix || slugify(getBaseFileName()) || "veri";
+  return `${base}-${slugify(splitHeader) || "kolon"}-ayri-exceller.zip`;
+}
+
+function sanitizeFileNamePart(value) {
+  return String(value || "")
+    .trim()
+    .replace(/[\\/:*?"<>|]+/g, "-")
+    .replace(/[^\p{L}\p{N}._ -]+/gu, "-")
+    .replace(/\s+/g, " ")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 function getFilterSlug() {
   const filter = els.rowFilter.value;
   if (filter === "duplicates") return `tekrar-${slugify(getDuplicateBasisLabel())}`;
@@ -2365,7 +2409,7 @@ function downloadTemplateCsv() {
   const link = document.createElement("a");
   const template = exportTemplates[els.exportTemplate.value] || exportTemplates.current;
   link.href = url;
-  link.download = `${state.fileName.replace(/\.csv$/i, "")}-${slugify(template.name)}${getDownloadLimitSuffix(rows)}.csv`;
+  link.download = buildDownloadFileName(slugify(template.name), "csv", rows);
   document.body.append(link);
   link.click();
   link.remove();
@@ -2434,7 +2478,7 @@ function downloadReport() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = state.fileName.replace(/\.csv$/i, "") + "-rapor.txt";
+  link.download = `${getDownloadFileBaseName()}-rapor.txt`;
   document.body.append(link);
   link.click();
   link.remove();
