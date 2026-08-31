@@ -76,6 +76,7 @@ const els = {
   smartCleanButton: document.querySelector("#smartCleanButton"),
   cleanRecipe: document.querySelector("#cleanRecipe"),
   applyRecipeButton: document.querySelector("#applyRecipeButton"),
+  applyTitleCaseButton: document.querySelector("#applyTitleCaseButton"),
   trimWhitespace: document.querySelector("#trimWhitespace"),
   normalizeEmpty: document.querySelector("#normalizeEmpty"),
   removeDuplicates: document.querySelector("#removeDuplicates"),
@@ -169,6 +170,7 @@ els.applyClean.addEventListener("click", () => runHeavyAction("Veri temizleniyor
 els.applyRecipeButton.addEventListener("click", applyCleanRecipe);
 els.undoButton.addEventListener("click", undoLastAction);
 els.smartCleanButton.addEventListener("click", () => runHeavyAction("CRM hazırlığı yapılıyor", smartCleanForCrm));
+els.applyTitleCaseButton.addEventListener("click", () => runHeavyAction("Yazım düzeni uygulanıyor", applyTitleCaseFormatting));
 els.phoneFormat.addEventListener("change", () => runHeavyAction("Telefon formatı uygulanıyor", applySelectedPhoneFormat));
 els.replaceButton.addEventListener("click", replaceInColumn);
 els.changePreview.addEventListener("click", (event) => {
@@ -933,6 +935,29 @@ function cleanRowsWithSelectedOptions() {
   formatPhoneRows();
 }
 
+function applyTitleCaseFormatting() {
+  if (!canUseFreeRows()) return showPlanLimitMessage();
+  if (!state.rows.length) return showToast("Önce bir CSV veya Excel dosyası yükleyin.", "warning", "Veri yok");
+
+  pushHistory("Yazım Düzeni");
+  const previewBefore = getPreviewSnapshot();
+  const before = analyzeData();
+  const beforeRows = state.rows.length;
+  formatTextRowsAsTitleCase();
+  captureCleanupResult("Yazım Düzeni", before, beforeRows);
+  captureChangePreview("Yazım Düzeni", previewBefore);
+  render();
+}
+
+function formatTextRowsAsTitleCase() {
+  state.rows = state.rows.map((row) =>
+    row.map((cell) => {
+      const value = String(cell ?? "").trim().replace(/\s+/g, " ");
+      return shouldTitleCase(value) ? toTitleCase(value) : value;
+    }),
+  );
+}
+
 function applySelectedPhoneFormat() {
   if (!state.rows.length) return;
   if (!canUseFreeRows()) return showPlanLimitMessage();
@@ -977,7 +1002,7 @@ function captureCleanupResult(action, before, beforeRows) {
 function toTitleCase(value) {
   return value
     .toLocaleLowerCase("tr-TR")
-    .replace(/(^|\s)\S/g, (letter) => letter.toLocaleUpperCase("tr-TR"));
+    .replace(/(^|[\s(/.-])(\p{L})/gu, (match, prefix, letter) => `${prefix}${letter.toLocaleUpperCase("tr-TR")}`);
 }
 
 function shouldTitleCase(value) {
@@ -1324,6 +1349,7 @@ function updatePlanState() {
 
   els.applyClean.disabled = !canUseBasic;
   els.smartCleanButton.disabled = !canUseBasic;
+  els.applyTitleCaseButton.disabled = !canUseBasic;
   els.replaceButton.disabled = !canUseBasic;
   els.downloadCenterButton.disabled = !canDownloadFromCenter();
   updateSmsControls();
