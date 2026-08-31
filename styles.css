@@ -1867,21 +1867,30 @@ td {
 }
 
 .status-cell {
-  min-width: 150px;
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
 }
 
 .row-badge {
   display: inline-flex;
   align-items: center;
-  width: fit-content;
+  max-width: 100%;
   border-radius: 999px;
   font-size: 0.72rem;
   font-weight: 800;
-  line-height: 1;
+  line-height: 1.2;
   margin: 2px 4px 2px 0;
   min-height: 24px;
   padding: 6px 8px;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.status-column {
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
 }
 
 .row-badge.ready {

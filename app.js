@@ -1962,6 +1962,7 @@ function renderTable() {
   const headerRow = document.createElement("tr");
   const statusHeader = document.createElement("th");
   statusHeader.textContent = "Durum";
+  statusHeader.className = "status-column";
   headerRow.append(statusHeader);
   state.headers.forEach((header) => {
     const th = document.createElement("th");
@@ -2020,10 +2021,11 @@ function getVisibleRowItems() {
 function renderRowBadges(row, index) {
   const issues = getRowIssueLabels(row, index);
   const labels = issues.length ? issues : [{ label: "Hazır", type: "ready" }];
-  return labels.slice(0, 4).map(({ label, type }) => {
+  return labels.slice(0, 4).map(({ label, type, title }) => {
     const badge = document.createElement("span");
     badge.className = `row-badge ${type}`;
     badge.textContent = label;
+    if (title) badge.title = title;
     return badge;
   });
 }
@@ -2033,7 +2035,15 @@ function getRowIssueLabels(row, index) {
   const labels = [];
   const emptyHeaders = state.headers.filter((_, columnIndex) => String(row[columnIndex] ?? "").trim() === "");
 
-  if (emptyHeaders.length) labels.push({ label: `Eksik: ${emptyHeaders.slice(0, 2).join(", ")}`, type: "missing" });
+  if (emptyHeaders.length) {
+    const visibleMissing = emptyHeaders[0];
+    const extraCount = emptyHeaders.length - 1;
+    labels.push({
+      label: extraCount > 0 ? `Eksik: ${visibleMissing} +${extraCount}` : `Eksik: ${visibleMissing}`,
+      title: `Eksik alanlar: ${emptyHeaders.join(", ")}`,
+      type: "missing",
+    });
+  }
   if (fields.email >= 0 && isInvalidEmailValue(row[fields.email])) labels.push({ label: "Email hatalı", type: "error" });
   if (fields.phone >= 0 && isInvalidPhoneValue(row[fields.phone])) labels.push({ label: "Telefon hatalı", type: "error" });
   if (isDuplicateRow(index)) labels.push({ label: "Tekrar", type: "duplicate" });
