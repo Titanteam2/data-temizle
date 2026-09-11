@@ -33,7 +33,7 @@ const {
 } = require("./lib/supabase");
 const localAuth = require("./lib/local-auth");
 
-const MAX_UPLOAD_BYTES = Number(process.env.MAX_UPLOAD_BYTES || 50 * 1024 * 1024);
+const MAX_UPLOAD_BYTES = Math.max(Number(process.env.MAX_UPLOAD_BYTES || 0), 100 * 1024 * 1024);
 const allowedExtensions = new Set(["csv", "xlsx", "xls"]);
 const allowedMimeTypes = new Set([
   "text/csv",

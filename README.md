@@ -10,7 +10,7 @@ Production hedefi: `https://datatemizle.com`
 
 - CSV, XLSX ve XLS dosyası yükleme
 - Sürükle-bırak dosya yükleme
-- Dosya tipi ve 50 MB dosya boyutu doğrulaması
+- Dosya tipi ve 100 MB dosya boyutu doğrulaması
 - Supabase Auth ile güvenli kayıt/giriş
 - Supabase Storage ile kullanıcıya özel dosya saklama
 - Kullanıcı dosyalarının `user_id` bazlı izole edilmesi
@@ -62,7 +62,7 @@ SUPABASE_URL=https://your-project-ref.supabase.co
 SUPABASE_ANON_KEY=your-supabase-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 SUPABASE_STORAGE_BUCKET=uploads
-MAX_UPLOAD_BYTES=52428800
+MAX_UPLOAD_BYTES=104857600
 FILE_RETENTION_DAYS=7
 CRON_SECRET=replace-with-a-long-random-string
 IYZICO_API_KEY=your-iyzico-api-key

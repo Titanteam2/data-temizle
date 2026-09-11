@@ -18,7 +18,7 @@ const state = {
 };
 
 const FREE_ROW_LIMIT = 1000;
-const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
 const MAX_BACKGROUND_STORAGE_BYTES = 4 * 1024 * 1024;
 const allowedUploadExtensions = new Set(["csv", "xlsx", "xls"]);
 
