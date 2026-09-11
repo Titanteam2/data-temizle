@@ -33,61 +33,14 @@
           <span id="uploadStatus" class="upload-status">Dosya bekleniyor</span>
         </label>
 
-        <section class="panel format-panel">
-          <div class="format-panel-heading">
-            <div>
-              <h2>Format Dönüştürücü</h2>
-              <small>CSV ve Excel dosyaları</small>
-            </div>
-            <span class="format-badge">Yerel</span>
-          </div>
-          <p class="panel-note">CSV, TSV veya Excel dosyalarını birbirine dönüştürün. Dosyalar birleştirilmez ve temel adları korunur.</p>
-          <div class="format-options">
-            <label>
-              <span>Çıkış formatı</span>
-              <select id="formatOutputFormat">
-                <option value="csv">CSV</option>
-                <option value="xlsx">Excel (.xlsx)</option>
-              </select>
-            </label>
-            <label id="formatInputDelimiterGroup">
-              <span>CSV giriş ayracı</span>
-              <select id="formatInputDelimiter">
-                <option value="auto">Otomatik algıla</option>
-                <option value="semicolon">Noktalı virgül (;)</option>
-                <option value="comma">Virgül (,)</option>
-                <option value="tab">Sekme (TAB)</option>
-              </select>
-            </label>
-            <label id="formatOutputDelimiterGroup">
-              <span>Çıkış ayracı</span>
-              <select id="formatOutputDelimiter">
-                <option value="comma">Virgül (,)</option>
-                <option value="semicolon">Noktalı virgül (;)</option>
-                <option value="tab">Sekme (TAB)</option>
-              </select>
-            </label>
-            <label id="formatEncodingGroup">
-              <span>Karakter kodlaması</span>
-              <select id="formatEncoding">
-                <option value="utf8-bom">UTF-8 (Excel uyumlu)</option>
-                <option value="utf8">UTF-8</option>
-              </select>
-            </label>
-          </div>
-          <label id="formatUploadZone" class="format-upload-zone" for="formatFileInput">
-            <input id="formatFileInput" type="file" accept=".csv,.tsv,.xlsx,.xls,text/csv,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" multiple />
-            <span aria-hidden="true">⇄</span>
-            <strong>Dosyaları seç</strong>
-            <small>CSV, TSV, XLSX ve XLS • çoklu seçim</small>
-          </label>
-          <div id="formatFileList" class="format-file-list" aria-live="polite"></div>
-          <div class="format-actions">
-            <button id="downloadConvertedButton" class="primary-button" type="button" disabled>Tümünü indir</button>
-            <button id="clearConvertedButton" type="button" disabled>Temizle</button>
-          </div>
-          <small id="formatStatus" class="panel-note">Henüz dosya seçilmedi.</small>
-        </section>
+        <a class="tool-link" href="converter.html">
+          <span class="tool-link-icon" aria-hidden="true">⇄</span>
+          <span>
+            <strong>Format Dönüştürücü</strong>
+            <small>CSV ve Excel dosyalarını dönüştür</small>
+          </span>
+          <span aria-hidden="true">›</span>
+        </a>
 
         <section class="panel plan-panel">
           <h2>Üyelik</h2>
@@ -360,6 +313,6 @@
     </template>
 
     <script src="xlsx.full.min.js?v=20260822-3"></script>
-    <script src="app.js?v=20260911-2"></script>
+    <script src="app.js?v=20260911-3"></script>
   </body>
 </html>

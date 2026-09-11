@@ -10,9 +10,6 @@ const state = {
   showColumnsPanel: false,
   smsColumns: new Map(),
   editingSmsColumn: "",
-  formatFiles: [],
-  formatSourceFiles: [],
-  formatRunId: 0,
   user: null,
   authLoading: false,
   authError: "",
@@ -45,18 +42,6 @@ const els = {
   fileInput: document.querySelector("#fileInput"),
   uploadZone: document.querySelector(".upload-zone"),
   uploadStatus: document.querySelector("#uploadStatus"),
-  formatFileInput: document.querySelector("#formatFileInput"),
-  formatUploadZone: document.querySelector("#formatUploadZone"),
-  formatFileList: document.querySelector("#formatFileList"),
-  formatStatus: document.querySelector("#formatStatus"),
-  downloadConvertedButton: document.querySelector("#downloadConvertedButton"),
-  clearConvertedButton: document.querySelector("#clearConvertedButton"),
-  formatOutputFormat: document.querySelector("#formatOutputFormat"),
-  formatInputDelimiter: document.querySelector("#formatInputDelimiter"),
-  formatOutputDelimiter: document.querySelector("#formatOutputDelimiter"),
-  formatEncoding: document.querySelector("#formatEncoding"),
-  formatOutputDelimiterGroup: document.querySelector("#formatOutputDelimiterGroup"),
-  formatEncodingGroup: document.querySelector("#formatEncodingGroup"),
   fileName: document.querySelector("#fileName"),
   rowCount: document.querySelector("#rowCount"),
   columnCount: document.querySelector("#columnCount"),
@@ -154,43 +139,6 @@ els.fileInput.addEventListener("change", async (event) => {
   await loadFileWithStatus(file);
 });
 
-els.formatFileInput.addEventListener("change", async (event) => {
-  await convertFormatFiles([...event.target.files]);
-});
-
-[els.formatOutputFormat, els.formatInputDelimiter, els.formatOutputDelimiter, els.formatEncoding].forEach((control) => {
-  control.addEventListener("change", updateFormatControls);
-});
-
-["dragenter", "dragover"].forEach((eventName) => {
-  els.formatUploadZone.addEventListener(eventName, (event) => {
-    event.preventDefault();
-    els.formatUploadZone.classList.add("is-dragging");
-  });
-});
-
-["dragleave", "drop"].forEach((eventName) => {
-  els.formatUploadZone.addEventListener(eventName, (event) => {
-    event.preventDefault();
-    if (eventName === "dragleave" && els.formatUploadZone.contains(event.relatedTarget)) return;
-    els.formatUploadZone.classList.remove("is-dragging");
-  });
-});
-
-els.formatUploadZone.addEventListener("drop", async (event) => {
-  await convertFormatFiles([...event.dataTransfer.files]);
-});
-
-els.formatFileList.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-download-converted]");
-  if (!button) return;
-  const item = state.formatFiles[Number(button.dataset.downloadConverted)];
-  if (item?.blob) downloadBlob(item.blob, item.name);
-});
-
-els.downloadConvertedButton.addEventListener("click", downloadAllConvertedFiles);
-els.clearConvertedButton.addEventListener("click", clearConvertedFiles);
-
 ["dragenter", "dragover"].forEach((eventName) => {
   els.uploadZone.addEventListener(eventName, (event) => {
     event.preventDefault();
@@ -276,7 +224,6 @@ els.duplicateColumnFilter.addEventListener("change", () => {
 initTheme();
 initAuth();
 initGlobalErrorHandling();
-updateFormatControls();
 
 function initGlobalErrorHandling() {
   window.addEventListener("error", () => showAppError("Beklenmeyen bir hata oluştu. Sayfayı yenileyip tekrar deneyin."));
@@ -534,215 +481,6 @@ async function loadFileWithStatus(file) {
 function setUploadStatus(status, message) {
   els.uploadStatus.textContent = message;
   els.uploadStatus.dataset.status = status;
-}
-
-const formatDelimiterValues = {
-  comma: ",",
-  semicolon: ";",
-  tab: "\t",
-};
-
-async function updateFormatControls() {
-  const isCsvOutput = els.formatOutputFormat.value === "csv";
-  els.formatOutputDelimiterGroup.classList.toggle("hidden", !isCsvOutput);
-  els.formatEncodingGroup.classList.toggle("hidden", !isCsvOutput);
-  if (state.formatSourceFiles.length) await convertFormatFiles(state.formatSourceFiles, false);
-}
-
-async function convertFormatFiles(files, rememberFiles = true) {
-  if (!files.length) return;
-  if (rememberFiles) state.formatSourceFiles = files;
-  const runId = ++state.formatRunId;
-
-  const outputFormat = els.formatOutputFormat.value;
-  const outputDelimiter = formatDelimiterValues[els.formatOutputDelimiter.value] || ",";
-  const addBom = els.formatEncoding.value === "utf8-bom";
-  const allowedExtensions = new Set(["csv", "tsv", "xlsx", "xls"]);
-
-  els.formatUploadZone.classList.add("is-loading");
-  els.formatStatus.textContent = files.length.toLocaleString("tr-TR") + " dosya dönüştürülüyor…";
-  state.formatFiles = [];
-  renderFormatFiles();
-
-  for (const file of files) {
-    const extension = file.name.split(".").pop()?.toLocaleLowerCase("tr-TR");
-    if (!allowedExtensions.has(extension)) {
-      state.formatFiles.push({ name: file.name, error: "CSV, TSV, XLSX veya XLS dosyası seçin." });
-      continue;
-    }
-    if (!file.size) {
-      state.formatFiles.push({ name: file.name, error: "Dosya boş." });
-      continue;
-    }
-    if (file.size > MAX_UPLOAD_BYTES) {
-      state.formatFiles.push({ name: file.name, error: "Dosya 50 MB sınırını aşıyor." });
-      continue;
-    }
-
-    try {
-      const records = await readFormatRecords(file, extension);
-      if (runId !== state.formatRunId) return;
-      if (!records.length || !records.some((row) => row.some((cell) => String(cell).length))) {
-        throw new Error("Dosyada dönüştürülecek veri bulunamadı.");
-      }
-
-      const output = buildConvertedOutput(records, outputFormat, outputDelimiter, addBom);
-      const proposedName = buildConvertedFileName(file.name, outputFormat);
-      const outputName = makeUniqueConvertedName(proposedName);
-      state.formatFiles.push({
-        name: outputName,
-        sourceName: file.name,
-        blob: output.blob,
-        bytes: output.bytes,
-        rowCount: records.filter((row) => row.some((cell) => String(cell).length)).length,
-      });
-    } catch (error) {
-      state.formatFiles.push({ name: file.name, error: error.message || "Dönüştürülemedi." });
-    }
-  }
-
-  if (runId !== state.formatRunId) return;
-  els.formatUploadZone.classList.remove("is-loading", "is-dragging");
-  renderFormatFiles();
-}
-
-async function readFormatRecords(file, extension) {
-  if (extension === "xlsx" || extension === "xls") {
-    const xlsx = window.XLSX;
-    if (!xlsx) throw new Error("Excel desteği yüklenemedi.");
-    const workbook = xlsx.read(await file.arrayBuffer(), { type: "array", codepage: 1254 });
-    const sheetName = workbook.SheetNames[0];
-    if (!sheetName) throw new Error("Excel dosyasında okunabilir sayfa bulunamadı.");
-    return xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], {
-      header: 1,
-      blankrows: true,
-      defval: "",
-      raw: false,
-    });
-  }
-
-  const text = await decodeCsvFile(file);
-  const selectedDelimiter = els.formatInputDelimiter.value;
-  const delimiter = selectedDelimiter === "auto"
-    ? (extension === "tsv" ? "\t" : detectDelimiter(text))
-    : (formatDelimiterValues[selectedDelimiter] || ",");
-  return parseCsv(text, delimiter);
-}
-
-function buildConvertedOutput(records, outputFormat, delimiter, addBom) {
-  if (outputFormat === "xlsx") {
-    const bytes = buildConvertedXlsxBytes(records);
-    return {
-      bytes,
-      blob: new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }),
-    };
-  }
-
-  const content = records.map((row) => formatDelimitedRow(row, delimiter)).join("\r\n");
-  const bytes = new TextEncoder().encode((addBom ? "\ufeff" : "") + content);
-  return {
-    bytes,
-    blob: new Blob([bytes], { type: "text/csv;charset=utf-8" }),
-  };
-}
-
-function buildConvertedXlsxBytes(records) {
-  const xlsx = window.XLSX;
-  if (!xlsx) throw new Error("Excel desteği yüklenemedi.");
-  const worksheet = xlsx.utils.aoa_to_sheet(records);
-  const workbook = xlsx.utils.book_new();
-  xlsx.utils.book_append_sheet(workbook, worksheet, "Veri");
-  return new Uint8Array(xlsx.write(workbook, { bookType: "xlsx", type: "array" }));
-}
-
-function formatDelimitedRow(row, delimiter) {
-  return row.map((cell) => {
-    const value = String(cell ?? "");
-    if (value.includes('"') || value.includes("\n") || value.includes("\r") || value.includes(delimiter)) {
-      return '"' + value.replaceAll('"', '""') + '"';
-    }
-    return value;
-  }).join(delimiter);
-}
-
-function buildConvertedFileName(fileName, outputFormat) {
-  const safeName = String(fileName || "veri").replace(/[\\/:*?"<>|]+/g, "-");
-  const baseName = safeName.replace(/\.(csv|tsv|xlsx|xls)$/i, "") || "veri";
-  return baseName + "." + outputFormat;
-}
-
-function makeUniqueConvertedName(fileName) {
-  const usedNames = new Set(state.formatFiles.filter((item) => item.blob).map((item) => item.name.toLocaleLowerCase("tr-TR")));
-  if (!usedNames.has(fileName.toLocaleLowerCase("tr-TR"))) return fileName;
-  const dotIndex = fileName.lastIndexOf(".");
-  const baseName = dotIndex > 0 ? fileName.slice(0, dotIndex) : fileName;
-  const extension = dotIndex > 0 ? fileName.slice(dotIndex) : "";
-  let counter = 2;
-  while (usedNames.has((baseName + "-" + counter + extension).toLocaleLowerCase("tr-TR"))) counter += 1;
-  return baseName + "-" + counter + extension;
-}
-
-function renderFormatFiles() {
-  const successfulFiles = state.formatFiles.filter((item) => item.blob);
-  const failedFiles = state.formatFiles.filter((item) => item.error);
-  els.formatFileList.innerHTML = state.formatFiles.map((item, index) => {
-    const status = item.error
-      ? escapeHtml(item.error)
-      : item.rowCount.toLocaleString("tr-TR") + " satır • hazır";
-    const downloadButton = item.blob
-      ? '<button type="button" data-download-converted="' + index + '">İndir</button>'
-      : "";
-    return '<article class="format-file-item ' + (item.error ? "has-error" : "") + '">' +
-      '<span class="format-file-icon" aria-hidden="true">' + (item.error ? "!" : "✓") + '</span>' +
-      '<span class="format-file-copy">' +
-        '<strong title="' + escapeHtml(item.name) + '">' + escapeHtml(item.name) + '</strong>' +
-        '<small>' + status + '</small>' +
-      '</span>' +
-      downloadButton +
-    '</article>';
-  }).join("");
-
-  els.downloadConvertedButton.disabled = successfulFiles.length === 0;
-  els.downloadConvertedButton.textContent = successfulFiles.length > 1 ? "Tümünü ZIP indir" : "Dosyayı indir";
-  els.clearConvertedButton.disabled = state.formatFiles.length === 0;
-
-  if (!state.formatFiles.length) {
-    els.formatStatus.textContent = "Henüz dosya seçilmedi.";
-  } else if (!successfulFiles.length) {
-    els.formatStatus.textContent = "Seçilen dosyalar dönüştürülemedi.";
-  } else {
-    const errorText = failedFiles.length
-      ? ", " + failedFiles.length.toLocaleString("tr-TR") + " dosyada hata var"
-      : "";
-    els.formatStatus.textContent = successfulFiles.length.toLocaleString("tr-TR") +
-      " dosya hazır" + errorText + ". Dosya adları korundu.";
-  }
-}
-
-function downloadAllConvertedFiles() {
-  const files = state.formatFiles.filter((item) => item.blob);
-  if (!files.length) return;
-  if (files.length === 1) {
-    downloadBlob(files[0].blob, files[0].name);
-    return;
-  }
-
-  const zipBlob = createZipBlob(files.map((item) => ({ name: item.name, data: item.bytes })));
-  downloadBlob(zipBlob, "donusturulen-dosyalar.zip");
-  showToast(
-    files.length.toLocaleString("tr-TR") + " dosya ayrı ayrı ZIP'e eklendi.",
-    "success",
-    "Dönüştürme tamamlandı",
-  );
-}
-
-function clearConvertedFiles() {
-  state.formatRunId += 1;
-  state.formatFiles = [];
-  state.formatSourceFiles = [];
-  els.formatFileInput.value = "";
-  els.formatUploadZone.classList.remove("is-loading", "is-dragging");
-  renderFormatFiles();
 }
 
 function runHeavyAction(message, action) {

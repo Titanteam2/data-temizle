@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Format Dönüştürücü - Data Temizle</title>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="apple-touch-icon" href="/logo.svg" />
+    <link rel="stylesheet" href="styles.css?v=20260911-2" />
+    <script src="analytics-init.js"></script>
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+  </head>
+  <body>
+    <div id="appError" class="app-error hidden" role="alert"></div>
+    <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="true"></div>
+
+    <main class="converter-page">
+      <header class="converter-header">
+        <div class="brand">
+          <span class="brand-mark">DT</span>
+          <div>
+            <h1>Format Dönüştürücü</h1>
+            <p>CSV ve Excel dosyalarını birbirine dönüştürün</p>
+          </div>
+        </div>
+        <div class="converter-header-actions">
+          <button id="themeToggle" class="theme-toggle" type="button" aria-label="Koyu modu aç" title="Koyu modu aç"></button>
+          <a class="converter-back-link" href="index.html">Veri Temizlemeye Dön</a>
+        </div>
+      </header>
+
+      <section class="converter-main">
+        <div class="converter-hero">
+          <p class="eyebrow">Bağımsız araç</p>
+          <h2>Dosya biçimini değiştirin, veriyi olduğu gibi koruyun.</h2>
+          <p>Birden fazla dosyayı aynı anda dönüştürebilir, CSV ayracını seçebilir ve sonuçları ayrı dosyalar halinde indirebilirsiniz.</p>
+          <div class="converter-feature-strip" aria-label="Özellikler">
+            <span><strong>Çoklu dosya</strong><small>Tek seferde toplu işlem</small></span>
+            <span><strong>Yerel işlem</strong><small>Dosyalar tarayıcıda işlenir</small></span>
+            <span><strong>Ayrı sonuçlar</strong><small>Dosyalar birleştirilmez</small></span>
+          </div>
+        </div>
+
+        <section class="panel format-panel converter-tool-card">
+          <div class="format-panel-heading">
+            <div>
+              <h2>Dönüştürme ayarları</h2>
+              <small>CSV, TSV, XLSX ve XLS desteklenir. Excel dosyalarında ilk sayfa kullanılır.</small>
+            </div>
+            <span class="format-badge">Yerel</span>
+          </div>
+
+          <div class="format-options">
+            <label>
+              <span>Çıktı biçimi</span>
+              <select id="formatOutputFormat">
+                <option value="csv">CSV</option>
+                <option value="xlsx">Excel (.xlsx)</option>
+              </select>
+            </label>
+            <label>
+              <span>Girdi ayracı</span>
+              <select id="formatInputDelimiter">
+                <option value="auto">Otomatik algıla</option>
+                <option value="comma">Virgül (,)</option>
+                <option value="semicolon">Noktalı virgül (;)</option>
+                <option value="tab">Sekme (TAB)</option>
+              </select>
+            </label>
+            <label id="formatOutputDelimiterGroup">
+              <span>Çıktı ayracı</span>
+              <select id="formatOutputDelimiter">
+                <option value="comma">Virgül (,)</option>
+                <option value="semicolon">Noktalı virgül (;)</option>
+                <option value="tab">Sekme (TAB)</option>
+              </select>
+            </label>
+            <label id="formatEncodingGroup">
+              <span>CSV kodlaması</span>
+              <select id="formatEncoding">
+                <option value="utf8-bom">UTF-8 (Excel uyumlu)</option>
+                <option value="utf8">UTF-8</option>
+              </select>
+            </label>
+          </div>
+
+          <label id="formatUploadZone" class="format-upload-zone" for="formatFileInput">
+            <input id="formatFileInput" type="file" multiple accept=".csv,.tsv,.xlsx,.xls,text/csv,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
+            <span aria-hidden="true">⇄</span>
+            <strong>Dosyaları seçin veya buraya bırakın</strong>
+            <small>En fazla 50 MB; seçilen dosyalar birbirleriyle birleştirilmez.</small>
+          </label>
+
+          <div id="formatFileList" class="format-file-list"></div>
+          <small id="formatStatus" class="panel-note">Henüz dosya seçilmedi.</small>
+          <div class="format-actions">
+            <button id="downloadConvertedButton" type="button" disabled>Dosyayı indir</button>
+            <button id="clearConvertedButton" class="secondary" type="button" disabled>Temizle</button>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="xlsx.full.min.js"></script>
+    <script src="converter.js?v=20260911-1"></script>
+  </body>
+</html>
