@@ -2236,7 +2236,8 @@ async function downloadSplitCsv() {
       els.downloadInfo.textContent = `${fileIndex.toLocaleString("tr-TR")} / ${groups.size.toLocaleString("tr-TR")} CSV hazırlanıyor…`;
       await yieldToBrowser();
       const limitedRows = applyDownloadLimit(rows);
-      const csv = formatCsvRow(state.headers) + "\n" + limitedRows.map(formatCsvRow).join("\n");
+      const csv = formatExcelCompatibleCsvRow(state.headers) + "\n" +
+        limitedRows.map(formatExcelCompatibleCsvRow).join("\n");
       const groupName = sanitizeFileNamePart(value) || "Bos";
       const suffix = `${slugify(state.headers[columnIndex])}-${slugify(value) || "bos"}`;
       files.push({
@@ -2608,6 +2609,16 @@ function formatCsvRow(row) {
       return value;
     })
     .join(",");
+}
+
+function formatExcelCompatibleCsvRow(row) {
+  return row
+    .map((cell) => {
+      const value = String(cell ?? "");
+      if (/[";\n\r]/.test(value)) return `"${value.replaceAll('"', '""')}"`;
+      return value;
+    })
+    .join(";");
 }
 
 function isInvalidEmailValue(value) {
