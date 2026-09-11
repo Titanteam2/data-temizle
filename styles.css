@@ -496,6 +496,175 @@ select.is-passive {
   line-height: 1.35;
 }
 
+.format-panel {
+  gap: 12px;
+}
+
+.format-panel-heading,
+.format-actions,
+.format-file-item {
+  display: flex;
+  align-items: center;
+}
+
+.format-panel-heading {
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.format-panel-heading > div {
+  display: grid;
+  gap: 3px;
+}
+
+.format-panel-heading small,
+.format-upload-zone small,
+.format-file-copy small {
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.format-badge {
+  border-radius: 999px;
+  background: #e4f3ef;
+  color: var(--accent-strong);
+  padding: 4px 8px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.format-upload-zone {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 10px;
+  align-items: center;
+  border: 1px dashed #8fb5b8;
+  border-radius: 7px;
+  background: var(--soft);
+  padding: 12px;
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.format-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.format-options label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.format-options label.hidden {
+  display: none;
+}
+
+.format-options label > span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.format-options select {
+  min-height: 36px;
+  padding: 6px 8px;
+  font-size: 0.76rem;
+}
+
+.format-upload-zone:hover,
+.format-upload-zone.is-dragging {
+  border-color: var(--accent);
+  background: #eaf7f4;
+}
+
+.format-upload-zone.is-loading {
+  opacity: 0.7;
+}
+
+.format-upload-zone input {
+  display: none;
+}
+
+.format-upload-zone > span {
+  grid-row: span 2;
+  color: var(--accent);
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.format-file-list {
+  display: grid;
+  gap: 7px;
+}
+
+.format-file-item {
+  gap: 8px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 8px;
+}
+
+.format-file-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 23px;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  background: #dff2e8;
+  color: #167348;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.format-file-item.has-error .format-file-icon {
+  background: #fde7e5;
+  color: #b53b32;
+}
+
+.format-file-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.format-file-copy strong {
+  overflow: hidden;
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.format-file-item button {
+  min-height: 30px;
+  padding: 0 9px;
+  font-size: 0.74rem;
+}
+
+.format-actions {
+  gap: 8px;
+}
+
+.format-actions button {
+  flex: 1;
+}
+
+:root[data-theme="dark"] .format-badge {
+  background: #173a34;
+  color: #87d4c7;
+}
+
+:root[data-theme="dark"] .format-upload-zone:hover,
+:root[data-theme="dark"] .format-upload-zone.is-dragging {
+  background: #1c3536;
+}
+
 .auth-tabs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2127,4 +2296,199 @@ body > .app-error {
 [data-theme="dark"] body > .app-error {
   background: #2a1114;
   color: #fecaca;
+}
+
+.help-page {
+  display: grid;
+  gap: 22px;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.help-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.help-header a {
+  color: var(--accent);
+  font-size: 0.86rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.help-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+  gap: 18px;
+  align-items: end;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow-soft);
+  padding: 22px;
+}
+
+.help-hero h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.7rem, 3vw, 2.55rem);
+  line-height: 1.05;
+}
+
+.help-hero p {
+  color: var(--muted);
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.help-search {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.help-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.help-nav {
+  position: sticky;
+  top: 18px;
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow-soft);
+  padding: 12px;
+}
+
+.help-nav a {
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+  border-radius: 6px;
+  color: var(--ink);
+  font-weight: 850;
+  text-decoration: none;
+  padding: 0 10px;
+}
+
+.help-nav a:hover {
+  background: var(--soft);
+  color: var(--accent);
+}
+
+.help-content {
+  display: grid;
+  gap: 12px;
+}
+
+.help-card {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow-soft);
+  padding: 18px;
+  scroll-margin-top: 18px;
+}
+
+.help-card > span {
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.help-card h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.25rem;
+}
+
+.help-card p,
+.help-card li,
+.help-card dd {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.help-card p,
+.help-card dl {
+  margin: 0;
+}
+
+.help-card ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.help-example {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--soft);
+  color: var(--ink);
+  font-weight: 900;
+  padding: 12px;
+}
+
+.help-faq {
+  display: grid;
+  gap: 8px;
+}
+
+.help-faq dt {
+  color: var(--ink);
+  font-weight: 900;
+}
+
+.help-faq dd {
+  margin: 0 0 10px;
+}
+
+.help-empty {
+  display: none;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-weight: 850;
+  text-align: center;
+  padding: 18px;
+}
+
+:root[data-help-empty="true"] .help-empty {
+  display: block;
+}
+
+@media (max-width: 980px) {
+  .help-page {
+    padding: 14px;
+  }
+
+  .help-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .help-hero,
+  .help-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .help-nav {
+    position: static;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
