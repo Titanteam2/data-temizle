@@ -113,6 +113,7 @@
             <option value="csv">CSV</option>
             <option value="xlsx">Excel</option>
             <option value="template">CRM şablon CSV</option>
+            <option value="splitCsvZip">Kolona göre CSV ZIP</option>
             <option value="splitZip">Kolona göre Excel ZIP</option>
             <option value="report">Kalite raporu</option>
           </select>
@@ -155,11 +156,11 @@
             <input id="downloadFileName" type="text" placeholder="Boşsa otomatik ad verilir" />
           </div>
           <div id="splitFilePrefixGroup" class="download-option-group">
-            <label class="field-label" for="splitFilePrefix">ZIP içindeki Excel dosya ön eki</label>
+            <label class="field-label" for="splitFilePrefix">ZIP içindeki dosya ön eki</label>
             <input id="splitFilePrefix" type="text" placeholder="Örn. kampanya listesi" />
           </div>
           <div id="splitColumnGroup" class="download-option-group">
-            <label class="field-label" for="splitColumn">Ayrı Excel kolonu</label>
+            <label class="field-label" for="splitColumn">Dosyaları ayıracak kolon</label>
             <select id="splitColumn"></select>
           </div>
           <small id="downloadInfo" class="panel-note">Veri yükleyince indirme seçenekleri hazırlanır.</small>
@@ -313,6 +314,6 @@
     </template>
 
     <script src="xlsx.full.min.js?v=20260822-3"></script>
-    <script src="app.js?v=20260911-4"></script>
+    <script src="app.js?v=20260911-5"></script>
   </body>
 </html>

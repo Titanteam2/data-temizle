@@ -1399,7 +1399,7 @@ function updateDownloadControls() {
   const showScope = ["csv", "xlsx"].includes(format);
   const showTemplate = format === "template";
   const showLimit = format !== "report";
-  const showSplit = format === "splitZip";
+  const showSplit = ["splitCsvZip", "splitZip"].includes(format);
   const showFileName = ["csv", "xlsx", "template", "report"].includes(format);
 
   els.downloadScopeGroup.classList.toggle("hidden", !showScope);
@@ -1409,7 +1409,7 @@ function updateDownloadControls() {
   els.splitFilePrefixGroup.classList.toggle("hidden", !showSplit);
   els.splitColumnGroup.classList.toggle("hidden", !showSplit);
   els.exportTemplate.disabled = format !== "template";
-  els.downloadScope.disabled = ["report", "template", "splitZip"].includes(format);
+  els.downloadScope.disabled = ["report", "template", "splitCsvZip", "splitZip"].includes(format);
   els.downloadFileName.disabled = !showFileName;
   els.splitFilePrefix.disabled = !showSplit;
   els.splitColumn.disabled = !state.headers.length;
@@ -1428,9 +1428,10 @@ function updateDownloadControls() {
     els.downloadInfo.textContent = "Kalite raporu TXT olarak indirilecek.";
   } else if (format === "template") {
     els.downloadInfo.textContent = `CRM şablonu ${applyDownloadLimit(state.rows).length.toLocaleString("tr-TR")} satırla indirilecek.`;
-  } else if (format === "splitZip") {
+  } else if (["splitCsvZip", "splitZip"].includes(format)) {
     const groups = groupRowsByColumn(Number(els.splitColumn.value));
-    els.downloadInfo.textContent = `${groups.size.toLocaleString("tr-TR")} Excel dosyası tek ZIP içinde indirilecek${getDownloadLimitLabel()}.`;
+    const fileType = format === "splitCsvZip" ? "CSV" : "Excel";
+    els.downloadInfo.textContent = `${groups.size.toLocaleString("tr-TR")} ${fileType} dosyası tek ZIP içinde indirilecek${getDownloadLimitLabel()}.`;
   } else {
     els.downloadInfo.textContent = `${selectedRows.length.toLocaleString("tr-TR")} satır ${format === "xlsx" ? "Excel" : "CSV"} olarak indirilecek${getDownloadLimitLabel()}.`;
   }
@@ -1443,13 +1444,13 @@ function canDownloadFromCenter() {
   if (downloadNeedsPro(format, scope) && !isProPlan()) return false;
   if (!canUseFreeRows() && !isProPlan()) return false;
   if (!hasValidDownloadLimit()) return false;
-  if (format === "splitZip") return state.headers.length > 0;
+  if (["splitCsvZip", "splitZip"].includes(format)) return state.headers.length > 0;
   if (format === "report" || format === "template") return true;
   return getRowsForDownloadScope(scope).length > 0;
 }
 
 function downloadNeedsPro(format, scope) {
-  if (["xlsx", "template", "splitZip", "report"].includes(format)) return true;
+  if (["xlsx", "template", "splitCsvZip", "splitZip", "report"].includes(format)) return true;
   return !["all", "visible"].includes(scope);
 }
 
@@ -2104,6 +2105,7 @@ function downloadFromCenter() {
   const scope = els.downloadScope.value;
   if (format === "report") return downloadReport();
   if (format === "template") return downloadTemplateCsv();
+  if (format === "splitCsvZip") return downloadSplitCsv();
   if (format === "splitZip") return downloadSplitXlsx();
 
   const rows = getRowsForDownloadScope(scope);
@@ -2212,6 +2214,51 @@ function downloadSplitXlsx() {
   els.downloadInfo.textContent = `${files.length.toLocaleString("tr-TR")} Excel dosyası ZIP içinde hazırlandı${getDownloadLimitLabel()}.`;
 }
 
+async function downloadSplitCsv() {
+  if (!isProPlan()) return showProRequiredMessage("Kolona göre CSV ZIP Pro pakette kullanılabilir.");
+  if (!state.rows.length || !state.headers.length) return;
+  const columnIndex = Number(els.splitColumn.value);
+  if (!Number.isInteger(columnIndex) || columnIndex < 0) return;
+
+  els.downloadCenterButton.disabled = true;
+  els.downloadInfo.textContent = "Satırlar gruplandırılıyor…";
+  await yieldToBrowser();
+
+  try {
+    const groups = await groupRowsByColumnAsync(columnIndex, (done, total) => {
+      els.downloadInfo.textContent = `${done.toLocaleString("tr-TR")} / ${total.toLocaleString("tr-TR")} satır gruplandırıldı…`;
+    });
+    const files = [];
+    let fileIndex = 0;
+
+    for (const [value, rows] of groups) {
+      fileIndex += 1;
+      els.downloadInfo.textContent = `${fileIndex.toLocaleString("tr-TR")} / ${groups.size.toLocaleString("tr-TR")} CSV hazırlanıyor…`;
+      await yieldToBrowser();
+      const limitedRows = applyDownloadLimit(rows);
+      const csv = formatCsvRow(state.headers) + "\n" + limitedRows.map(formatCsvRow).join("\n");
+      const groupName = sanitizeFileNamePart(value) || "Bos";
+      const suffix = `${slugify(state.headers[columnIndex])}-${slugify(value) || "bos"}`;
+      files.push({
+        name: buildSplitFileName(suffix, groupName, rows, "csv"),
+        data: new TextEncoder().encode("\ufeff" + csv),
+      });
+    }
+
+    const zipBlob = await createZipBlobAsync(files, (done, total) => {
+      els.downloadInfo.textContent = `${done.toLocaleString("tr-TR")} / ${total.toLocaleString("tr-TR")} dosya ZIP'e ekleniyor…`;
+    });
+    downloadBlob(zipBlob, buildZipFileName(state.headers[columnIndex], "csv"));
+    els.downloadInfo.textContent = `${files.length.toLocaleString("tr-TR")} CSV dosyası ZIP içinde hazırlandı${getDownloadLimitLabel()}.`;
+  } catch (error) {
+    console.error(error);
+    els.downloadInfo.textContent = "CSV ZIP hazırlanamadı.";
+    showToast(error.message || "CSV ZIP hazırlanamadı.", "error", "İndirme başarısız");
+  } finally {
+    els.downloadCenterButton.disabled = !canDownloadFromCenter();
+  }
+}
+
 function buildXlsxBytes(headers, rows) {
   const xlsx = window.XLSX;
   if (!xlsx) {
@@ -2233,6 +2280,27 @@ function groupRowsByColumn(columnIndex) {
     groups.get(value).push(row);
   });
   return groups;
+}
+
+async function groupRowsByColumnAsync(columnIndex, onProgress) {
+  const groups = new Map();
+  const chunkSize = 25000;
+  for (let index = 0; index < state.rows.length; index += 1) {
+    const row = state.rows[index];
+    const value = String(row[columnIndex] ?? "").trim() || "Bos";
+    if (!groups.has(value)) groups.set(value, []);
+    groups.get(value).push(row);
+    if ((index + 1) % chunkSize === 0) {
+      onProgress?.(index + 1, state.rows.length);
+      await yieldToBrowser();
+    }
+  }
+  onProgress?.(state.rows.length, state.rows.length);
+  return groups;
+}
+
+function yieldToBrowser() {
+  return new Promise((resolve) => window.setTimeout(resolve, 0));
 }
 
 function getDownloadLimit() {
@@ -2286,6 +2354,29 @@ function createZipBlob(files) {
   const centralSize = centralParts.reduce((sum, part) => sum + part.length, 0);
   const endRecord = buildZipEndRecord(files.length, centralSize, offset);
   return new Blob([...localParts, ...centralParts, endRecord], { type: "application/zip" });
+}
+
+async function createZipBlobAsync(files, onProgress) {
+  const encoder = new TextEncoder();
+  const localParts = [];
+  const centralParts = [];
+  let offset = 0;
+
+  for (let index = 0; index < files.length; index += 1) {
+    const file = files[index];
+    const nameBytes = encoder.encode(file.name);
+    const data = file.data instanceof Uint8Array ? file.data : new Uint8Array(file.data);
+    const crc = crc32(data);
+    const localHeader = buildZipLocalHeader(nameBytes, data.length, crc);
+    localParts.push(localHeader, data);
+    centralParts.push(buildZipCentralHeader(nameBytes, data.length, crc, offset));
+    offset += localHeader.length + data.length;
+    onProgress?.(index + 1, files.length);
+    await yieldToBrowser();
+  }
+
+  const centralSize = centralParts.reduce((sum, part) => sum + part.length, 0);
+  return new Blob([...localParts, ...centralParts, buildZipEndRecord(files.length, centralSize, offset)], { type: "application/zip" });
 }
 
 function buildZipLocalHeader(nameBytes, size, crc) {
@@ -2375,15 +2466,19 @@ function buildDownloadFileName(suffix, extension, rows = []) {
 }
 
 function buildSplitXlsxFileName(defaultSuffix, groupName, rows = []) {
-  const prefix = getSplitFilePrefix();
-  const base = prefix ? `${prefix}-${groupName}` : `${slugify(getBaseFileName())}-${defaultSuffix}`;
-  return `${base}${getDownloadLimitSuffix(rows)}.xlsx`;
+  return buildSplitFileName(defaultSuffix, groupName, rows, "xlsx");
 }
 
-function buildZipFileName(splitHeader) {
+function buildSplitFileName(defaultSuffix, groupName, rows = [], extension = "xlsx") {
+  const prefix = getSplitFilePrefix();
+  const base = prefix ? `${prefix}-${groupName}` : `${slugify(getBaseFileName())}-${defaultSuffix}`;
+  return `${base}${getDownloadLimitSuffix(rows)}.${extension}`;
+}
+
+function buildZipFileName(splitHeader, fileType = "excel") {
   const prefix = getSplitFilePrefix();
   const base = prefix || slugify(getBaseFileName()) || "veri";
-  return `${base}-${slugify(splitHeader) || "kolon"}-ayri-exceller.zip`;
+  return `${base}-${slugify(splitHeader) || "kolon"}-ayri-${fileType === "csv" ? "csvler" : "exceller"}.zip`;
 }
 
 function sanitizeFileNamePart(value) {
