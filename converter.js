@@ -1,5 +1,5 @@
 const state = { files: [], sourceFiles: [], runId: 0 };
-const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
 const delimiterValues = { comma: ",", semicolon: ";", tab: "\t" };
 
 const els = {
@@ -105,7 +105,7 @@ async function convertFiles(files, rememberFiles = true) {
       continue;
     }
     if (file.size > MAX_UPLOAD_BYTES) {
-      state.files.push({ name: file.name, error: "Dosya 50 MB sınırını aşıyor." });
+      state.files.push({ name: file.name, error: "Dosya 100 MB sınırını aşıyor." });
       continue;
     }
 
