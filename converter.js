@@ -1,6 +1,14 @@
 const state = { files: [], sourceFiles: [], runId: 0 };
 const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
 const delimiterValues = { comma: ",", semicolon: ";", tab: "\t" };
+const textExtensions = new Set(["csv", "tsv", "txt"]);
+const workbookExtensions = new Set(["numbers", "xlsx", "xlsm", "xlsb", "xls", "ods", "fods"]);
+const allowedExtensions = new Set([...textExtensions, ...workbookExtensions]);
+const supportedInputLabel = "NUMBERS, XLSX, XLSM, XLSB, XLS, ODS, FODS, CSV, TSV veya TXT";
+const outputTypes = {
+  xlsx: { extension: "xlsx", bookType: "xlsx", mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+  ods: { extension: "ods", bookType: "ods", mime: "application/vnd.oasis.opendocument.spreadsheet" },
+};
 
 const els = {
   appError: document.querySelector("#appError"),
@@ -75,8 +83,9 @@ function updateThemeButton() {
 
 function updateControls() {
   const isCsv = els.outputFormat.value === "csv";
+  const isText = ["csv", "tsv"].includes(els.outputFormat.value);
   els.outputDelimiterGroup.classList.toggle("hidden", !isCsv);
-  els.encodingGroup.classList.toggle("hidden", !isCsv);
+  els.encodingGroup.classList.toggle("hidden", !isText);
   if (state.sourceFiles.length) convertFiles(state.sourceFiles, false);
 }
 
@@ -85,9 +94,8 @@ async function convertFiles(files, rememberFiles = true) {
   if (rememberFiles) state.sourceFiles = files;
   const runId = ++state.runId;
   const outputFormat = els.outputFormat.value;
-  const outputDelimiter = delimiterValues[els.outputDelimiter.value] || ",";
+  const outputDelimiter = outputFormat === "tsv" ? "\t" : (delimiterValues[els.outputDelimiter.value] || ",");
   const addBom = els.encoding.value === "utf8-bom";
-  const allowedExtensions = new Set(["csv", "tsv", "xlsx", "xls"]);
 
   els.uploadZone.classList.add("is-loading");
   els.status.textContent = files.length.toLocaleString("tr-TR") + " dosya dönüştürülüyor…";
@@ -95,9 +103,11 @@ async function convertFiles(files, rememberFiles = true) {
   renderFiles();
 
   for (const file of files) {
+    els.status.textContent = `${file.name} okunuyor…`;
+    await yieldToBrowser();
     const extension = file.name.split(".").pop()?.toLocaleLowerCase("tr-TR");
     if (!allowedExtensions.has(extension)) {
-      state.files.push({ name: file.name, error: "CSV, TSV, XLSX veya XLS dosyası seçin." });
+      state.files.push({ name: file.name, error: supportedInputLabel + " dosyası seçin." });
       continue;
     }
     if (!file.size) {
@@ -110,18 +120,21 @@ async function convertFiles(files, rememberFiles = true) {
     }
 
     try {
-      const records = await readRecords(file, extension);
+      const source = await readSource(file, extension);
       if (runId !== state.runId) return;
-      if (!records.length || !records.some((row) => row.some((cell) => String(cell).length))) {
+      const rowCount = source.sheets.reduce((sum, sheet) => sum + countNonEmptyRows(sheet.records), 0);
+      if (!rowCount) {
         throw new Error("Dosyada dönüştürülecek veri bulunamadı.");
       }
-      const output = buildOutput(records, outputFormat, outputDelimiter, addBom);
+      const output = buildOutput(source, outputFormat, outputDelimiter, addBom);
       const name = makeUniqueName(buildFileName(file.name, outputFormat));
       state.files.push({
         name,
         blob: output.blob,
         bytes: output.bytes,
-        rowCount: records.filter((row) => row.some((cell) => String(cell).length)).length,
+        rowCount,
+        sheetCount: source.sheets.length,
+        detail: output.detail,
       });
     } catch (error) {
       state.files.push({ name: file.name, error: error.message || "Dönüştürülemedi." });
@@ -133,36 +146,81 @@ async function convertFiles(files, rememberFiles = true) {
   renderFiles();
 }
 
-async function readRecords(file, extension) {
-  if (extension === "xlsx" || extension === "xls") {
+async function readSource(file, extension) {
+  if (workbookExtensions.has(extension)) {
     if (!window.XLSX) throw new Error("Excel desteği yüklenemedi.");
-    const workbook = window.XLSX.read(await file.arrayBuffer(), { type: "array", codepage: 1254 });
-    const sheetName = workbook.SheetNames[0];
-    if (!sheetName) throw new Error("Excel dosyasında okunabilir sayfa bulunamadı.");
-    return window.XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
-      header: 1, blankrows: true, defval: "", raw: false,
+    const workbook = window.XLSX.read(await file.arrayBuffer(), {
+      type: "array",
+      codepage: 1254,
+      cellDates: true,
+      cellNF: true,
     });
+    const sheets = workbook.SheetNames.map((name) => ({
+      name,
+      records: window.XLSX.utils.sheet_to_json(workbook.Sheets[name], {
+        header: 1, blankrows: true, defval: "", raw: false,
+      }),
+    })).filter((sheet) => sheet.records.length);
+    if (!sheets.length) throw new Error("Dosyada okunabilir tablo veya sayfa bulunamadı.");
+    return { sheets, workbook };
   }
   const text = await decodeTextFile(file);
   const selected = els.inputDelimiter.value;
   const delimiter = selected === "auto"
     ? (extension === "tsv" ? "\t" : detectDelimiter(text))
     : (delimiterValues[selected] || ",");
-  return parseDelimited(text, delimiter);
+  return { sheets: [{ name: "Veri", records: parseDelimited(text, delimiter) }] };
 }
 
-function buildOutput(records, outputFormat, delimiter, addBom) {
-  if (outputFormat === "xlsx") {
+function buildOutput(source, outputFormat, delimiter, addBom) {
+  const workbookType = outputTypes[outputFormat];
+  if (workbookType) {
     if (!window.XLSX) throw new Error("Excel desteği yüklenemedi.");
-    const worksheet = window.XLSX.utils.aoa_to_sheet(records);
-    const workbook = window.XLSX.utils.book_new();
-    window.XLSX.utils.book_append_sheet(workbook, worksheet, "Veri");
-    const bytes = new Uint8Array(window.XLSX.write(workbook, { bookType: "xlsx", type: "array" }));
-    return { bytes, blob: new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }) };
+    const workbook = source.workbook || buildWorkbookFromSheets(source.sheets);
+    const bytes = new Uint8Array(window.XLSX.write(workbook, { bookType: workbookType.bookType, type: "array" }));
+    return {
+      bytes,
+      blob: new Blob([bytes], { type: workbookType.mime }),
+      detail: source.sheets.length > 1 ? `${source.sheets.length} sayfa korundu` : "1 sayfa",
+    };
   }
+  const records = source.sheets[0].records;
   const content = records.map((row) => formatRow(row, delimiter)).join("\r\n");
   const bytes = new TextEncoder().encode((addBom ? "\ufeff" : "") + content);
-  return { bytes, blob: new Blob([bytes], { type: "text/csv;charset=utf-8" }) };
+  const mime = outputFormat === "tsv" ? "text/tab-separated-values;charset=utf-8" : "text/csv;charset=utf-8";
+  return {
+    bytes,
+    blob: new Blob([bytes], { type: mime }),
+    detail: source.sheets.length > 1 ? `ilk sayfa kullanıldı (${source.sheets.length} sayfa bulundu)` : "1 sayfa",
+  };
+}
+
+function buildWorkbookFromSheets(sheets) {
+  const workbook = window.XLSX.utils.book_new();
+  const usedNames = new Set();
+  sheets.forEach((sheet, index) => {
+    const worksheet = window.XLSX.utils.aoa_to_sheet(sheet.records);
+    const sheetName = makeUniqueSheetName(sheet.name || `Sayfa ${index + 1}`, usedNames);
+    window.XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+  });
+  return workbook;
+}
+
+function countNonEmptyRows(records) {
+  return records.filter((row) => row.some((cell) => String(cell ?? "").length)).length;
+}
+
+function makeUniqueSheetName(value, usedNames) {
+  const clean = String(value || "Veri").replace(/[\\/*?:[\]]+/g, "-").trim().slice(0, 31) || "Veri";
+  let name = clean;
+  let counter = 2;
+  while (usedNames.has(name.toLocaleLowerCase("tr-TR"))) {
+    const suffix = `-${counter}`;
+    name = clean.slice(0, 31 - suffix.length) + suffix;
+    counter += 1;
+  }
+  usedNames.add(name.toLocaleLowerCase("tr-TR"));
+  return name;
 }
 
 function formatRow(row, delimiter) {
@@ -176,7 +234,8 @@ function formatRow(row, delimiter) {
 
 function buildFileName(fileName, outputFormat) {
   const safeName = String(fileName || "veri").replace(/[\\/:*?"<>|]+/g, "-");
-  return (safeName.replace(/\.(csv|tsv|xlsx|xls)$/i, "") || "veri") + "." + outputFormat;
+  const extension = outputTypes[outputFormat]?.extension || outputFormat;
+  return (safeName.replace(/\.(numbers|xlsx|xlsm|xlsb|xls|ods|fods|csv|tsv|txt)$/i, "") || "veri") + "." + extension;
 }
 
 function makeUniqueName(fileName) {
@@ -194,7 +253,9 @@ function renderFiles() {
   const successful = state.files.filter((item) => item.blob);
   const failed = state.files.filter((item) => item.error);
   els.fileList.innerHTML = state.files.map((item, index) => {
-    const status = item.error ? escapeHtml(item.error) : item.rowCount.toLocaleString("tr-TR") + " satır • hazır";
+    const status = item.error
+      ? escapeHtml(item.error)
+      : item.rowCount.toLocaleString("tr-TR") + " satır • " + escapeHtml(item.detail || "hazır");
     const button = item.blob ? '<button type="button" data-download-converted="' + index + '">İndir</button>' : "";
     return '<article class="format-file-item ' + (item.error ? "has-error" : "") + '">' +
       '<span class="format-file-icon" aria-hidden="true">' + (item.error ? "!" : "✓") + '</span>' +
@@ -226,6 +287,10 @@ function clearFiles() {
   els.fileInput.value = "";
   els.uploadZone.classList.remove("is-loading", "is-dragging");
   renderFiles();
+}
+
+function yieldToBrowser() {
+  return new Promise((resolve) => window.setTimeout(resolve, 0));
 }
 
 async function decodeTextFile(file) {

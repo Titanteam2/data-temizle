@@ -21,7 +21,7 @@
           <span class="brand-mark">DT</span>
           <div>
             <h1>Format Dönüştürücü</h1>
-            <p>CSV ve Excel dosyalarını birbirine dönüştürün</p>
+            <p>Numbers, Excel, OpenDocument ve metin tablolarını dönüştürün</p>
           </div>
         </div>
         <div class="converter-header-actions">
@@ -34,11 +34,11 @@
         <div class="converter-hero">
           <p class="eyebrow">Bağımsız araç</p>
           <h2>Dosya biçimini değiştirin, veriyi olduğu gibi koruyun.</h2>
-          <p>Birden fazla dosyayı aynı anda dönüştürebilir, CSV ayracını seçebilir ve sonuçları ayrı dosyalar halinde indirebilirsiniz.</p>
+          <p>Numbers, Excel, OpenDocument, CSV ve TSV dosyalarını toplu olarak dönüştürebilir; çok sayfalı çalışma kitaplarını koruyabilirsiniz.</p>
           <div class="converter-feature-strip" aria-label="Özellikler">
-            <span><strong>Çoklu dosya</strong><small>Tek seferde toplu işlem</small></span>
+            <span><strong>10 girdi formatı</strong><small>Numbers ve ODS dahil</small></span>
             <span><strong>Yerel işlem</strong><small>Dosyalar tarayıcıda işlenir</small></span>
-            <span><strong>Ayrı sonuçlar</strong><small>Dosyalar birleştirilmez</small></span>
+            <span><strong>Çoklu sayfa</strong><small>XLSX ve ODS’de korunur</small></span>
           </div>
         </div>
 
@@ -46,7 +46,7 @@
           <div class="format-panel-heading">
             <div>
               <h2>Dönüştürme ayarları</h2>
-              <small>CSV, TSV, XLSX ve XLS desteklenir. Excel dosyalarında ilk sayfa kullanılır.</small>
+              <small>NUMBERS, XLSX, XLSM, XLSB, XLS, ODS, FODS, CSV, TSV ve TXT desteklenir.</small>
             </div>
             <span class="format-badge">Yerel</span>
           </div>
@@ -55,8 +55,10 @@
             <label>
               <span>Çıktı biçimi</span>
               <select id="formatOutputFormat">
-                <option value="csv">CSV</option>
                 <option value="xlsx">Excel (.xlsx)</option>
+                <option value="csv">CSV</option>
+                <option value="tsv">TSV</option>
+                <option value="ods">OpenDocument (.ods)</option>
               </select>
             </label>
             <label>
@@ -77,7 +79,7 @@
               </select>
             </label>
             <label id="formatEncodingGroup">
-              <span>CSV kodlaması</span>
+              <span>Metin kodlaması</span>
               <select id="formatEncoding">
                 <option value="utf8-bom">UTF-8 (Excel uyumlu)</option>
                 <option value="utf8">UTF-8</option>
@@ -86,10 +88,10 @@
           </div>
 
           <label id="formatUploadZone" class="format-upload-zone" for="formatFileInput">
-            <input id="formatFileInput" type="file" multiple accept=".csv,.tsv,.xlsx,.xls,text/csv,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
+            <input id="formatFileInput" type="file" multiple accept=".numbers,.xlsx,.xlsm,.xlsb,.xls,.ods,.fods,.csv,.tsv,.txt,text/csv,text/plain,text/tab-separated-values,application/vnd.apple.numbers,application/vnd.oasis.opendocument.spreadsheet,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
             <span aria-hidden="true">⇄</span>
             <strong>Dosyaları seçin veya buraya bırakın</strong>
-            <small>Dosya başına en fazla 100 MB; seçilen dosyalar birbirleriyle birleştirilmez.</small>
+            <small>Dosya başına en fazla 100 MB. Çoklu dosyalar birleşmez; çalışma kitabı sayfaları XLSX ve ODS çıktısında korunur.</small>
           </label>
 
           <div id="formatFileList" class="format-file-list"></div>
@@ -103,6 +105,6 @@
     </main>
 
     <script src="xlsx.full.min.js"></script>
-    <script src="converter.js?v=20260911-2"></script>
+    <script src="converter.js?v=20260920-1"></script>
   </body>
 </html>
