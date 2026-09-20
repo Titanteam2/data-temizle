@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kullanım Kılavuzu - Data Temizle</title>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="apple-touch-icon" href="/logo.svg" />
+    <link rel="stylesheet" href="styles.css?v=20260920-1" />
+    <script src="analytics-init.js"></script>
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+  </head>
+  <body>
+    <main class="help-page">
+      <header class="help-header">
+        <div class="brand">
+          <span class="brand-mark">DT</span>
+          <div>
+            <h1>Kullanım Kılavuzu</h1>
+            <p>Data Temizle ile dosya yükleme, temizleme ve indirme adımları</p>
+          </div>
+        </div>
+        <a href="index.html">Uygulamaya Dön</a>
+      </header>
+
+      <section class="help-hero">
+        <div>
+          <p class="eyebrow">Yardım</p>
+          <h2>Hangi bölüm ne işe yarıyor?</h2>
+          <p>Bu sayfa, Data Temizle içindeki temel işlemleri kısa ve anlaşılır şekilde gösterir.</p>
+        </div>
+        <label class="help-search">
+          <span>Kılavuzda ara</span>
+          <input id="helpSearch" type="search" placeholder="Örn. telefon, SMS, indirme, tekrar" />
+        </label>
+      </section>
+
+      <section class="help-layout">
+        <nav class="help-nav" aria-label="Kılavuz bölümleri">
+          <a href="#baslangic">Başlangıç</a>
+          <a href="#kalite">Veri Kalitesi</a>
+          <a href="#temizleme">Temizleme</a>
+          <a href="#sms">SMS Metni</a>
+          <a href="#filtreler">Filtreler</a>
+          <a href="#indirme">İndirme Merkezi</a>
+          <a href="#donusturucu">Format Dönüştürücü</a>
+          <a href="#uyelik">Üyelik</a>
+          <a href="#sss">Sorular</a>
+        </nav>
+
+        <div class="help-content">
+          <p class="help-empty">Aramaya uygun başlık bulunamadı.</p>
+
+          <article id="baslangic" class="help-card" data-help-card>
+            <span>01</span>
+            <h3>Başlangıç</h3>
+            <p>CSV, XLSX veya XLS dosyasını seçerek ya da sürükleyip bırakarak yükleyebilirsiniz. Dosya yüklendiğinde tablo, kalite skoru ve indirme seçenekleri otomatik hazırlanır.</p>
+            <ul>
+              <li>CSV ve Excel dosyalarının ilk sayfası okunur.</li>
+              <li>Dosya başına 100 MB'a kadar yükleme yapılabilir. Büyük dosyalarda ilerleme durumu sol panelde görünür.</li>
+              <li>Türkçe karakterler korunur.</li>
+            </ul>
+          </article>
+
+          <article id="kalite" class="help-card" data-help-card>
+            <span>02</span>
+            <h3>Veri Kalitesi</h3>
+            <p>Yüklenen listenin kampanya veya CRM aktarımı için ne kadar hazır olduğunu gösterir.</p>
+            <ul>
+              <li>Kalite skoru genel durumu özetler.</li>
+              <li>Boş hücreler kolon bazında sayılır.</li>
+              <li>E-posta, telefon ve tekrar kayıt sorunları ayrıca gösterilir.</li>
+            </ul>
+          </article>
+
+          <article id="temizleme" class="help-card" data-help-card>
+            <span>03</span>
+            <h3>Temizleme</h3>
+            <p>Listeyi tek tek uğraşmadan standart hale getirmek için kullanılır.</p>
+            <ul>
+              <li>Boşlukları kırp: Fazla boşlukları temizler.</li>
+              <li>Boş değerleri standartlaştır: null, n/a, - gibi değerleri boş hücreye çevirir.</li>
+              <li>Tekrarlanan satırları kaldır: Aynı kayıtları azaltır.</li>
+              <li>Yazım düzeni: Kelimelerin ilk harfini büyük, diğer harflerini küçük yapar.</li>
+              <li>Telefon formatı: Telefonları seçilen Türkiye formatına düzenler.</li>
+            </ul>
+          </article>
+
+          <article id="sms" class="help-card" data-help-card>
+            <span>04</span>
+            <h3>SMS Metni</h3>
+            <p>Her satır için özel SMS metni oluşturur. Metnin içine seçtiğiniz kolondan değer ekleyebilirsiniz.</p>
+            <div class="help-example">Size özel {{Şehir}} mağazamızda 1000 TL indirim.</div>
+            <ul>
+              <li>{{Şehir}} alanı her satırdaki şehir bilgisiyle değişir.</li>
+              <li>Yanlış eklenen SMS kolonları düzenlenebilir veya silinebilir.</li>
+              <li>Bu özellik kampanya listesi hazırlarken kullanılır.</li>
+            </ul>
+          </article>
+
+          <article id="filtreler" class="help-card" data-help-card>
+            <span>05</span>
+            <h3>Filtreler</h3>
+            <p>Tablodaki kayıtları hızlıca ayırmak için kullanılır.</p>
+            <ul>
+              <li>Tüm satırlar: Bütün kayıtları gösterir.</li>
+              <li>Sorunlu satırlar: Boş, hatalı veya tekrar olan kayıtları gösterir.</li>
+              <li>E-posta sorunları: Geçersiz e-posta adreslerini listeler.</li>
+              <li>Telefon sorunları: Standart formata uymayan telefonları listeler.</li>
+              <li>Tekrar kayıtlar: Seçilen kolona göre tekrarları gösterir.</li>
+            </ul>
+          </article>
+
+          <article id="indirme" class="help-card" data-help-card>
+            <span>06</span>
+            <h3>İndirme Merkezi</h3>
+            <p>Temizlenmiş veya filtrelenmiş veriyi dışarı almak için kullanılır.</p>
+            <ul>
+              <li>CSV: Temel dışa aktarma formatıdır.</li>
+              <li>Excel: Listeyi XLSX olarak indirir.</li>
+              <li>Kolona göre CSV ZIP: Büyük listeleri seçilen kolona göre ayırıp Excel uyumlu CSV dosyaları üretir.</li>
+              <li>Kolona göre Excel ZIP: Örneğin şehir bazlı ayrı Excel dosyaları üretir.</li>
+              <li>Kalite raporu: Listenin durumunu TXT raporu olarak indirir.</li>
+              <li>Dosya adı ve ZIP ön eki alanlarıyla indirilen dosya isimleri belirlenebilir.</li>
+            </ul>
+          </article>
+
+          <article id="donusturucu" class="help-card" data-help-card>
+            <span>07</span>
+            <h3>Format Dönüştürücü</h3>
+            <p>Ana temizleme akışından bağımsızdır. Dosyaları temizlemeden başka bir tablo biçimine dönüştürür.</p>
+            <ul>
+              <li>Numbers, XLSX, XLSM, XLSB, XLS, ODS, FODS, CSV, TSV ve TXT dosyalarını okuyabilir.</li>
+              <li>Excel, CSV, TSV ve ODS çıktısı üretir.</li>
+              <li>Numbers dosyaları Excel'e dönüştürülebilir.</li>
+              <li>XLSX ve ODS çıktılarında çoklu sayfalar korunur.</li>
+              <li>Birden fazla dosya birlikte seçildiğinde sonuçlar birleştirilmez ve ZIP olarak indirilebilir.</li>
+            </ul>
+          </article>
+
+          <article id="uyelik" class="help-card" data-help-card>
+            <span>08</span>
+            <h3>Üyelik ve Pro</h3>
+            <p>Ücretsiz hesap temel kullanım içindir. Pro hesapta daha büyük dosyalar ve gelişmiş indirme seçenekleri açılır.</p>
+            <ul>
+              <li>Ücretsiz: 1.000 satıra kadar temel CSV işlemleri.</li>
+              <li>Pro: Excel, ZIP, SMS metni, segment indirme ve kalite raporu.</li>
+              <li>Promosyon kodu varsa hesap sayfasından kullanılabilir.</li>
+            </ul>
+          </article>
+
+          <article id="sss" class="help-card" data-help-card>
+            <span>09</span>
+            <h3>Sık Sorulan Sorular</h3>
+            <dl class="help-faq">
+              <dt>Türkçe karakterler bozulursa ne yapmalıyım?</dt>
+              <dd>Dosyayı tekrar yükleyin. CSV dosyalarında farklı kodlamalar otomatik denenir.</dd>
+              <dt>Sadece maili hatalı olanları indirebilir miyim?</dt>
+              <dd>Evet. İndirme Merkezi'nde kapsam olarak Mail sorunluları seçilebilir.</dd>
+              <dt>Şehirlere göre ayrı Excel alabilir miyim?</dt>
+              <dd>Evet. Format olarak Kolona göre Excel ZIP seçip ayrı Excel kolonu olarak Şehir seçebilirsiniz.</dd>
+              <dt>Numbers dosyasını Excel'e çevirebilir miyim?</dt>
+              <dd>Evet. Ana sayfadaki Format Dönüştürücü bağlantısını açıp çıktı biçimi olarak Excel seçebilirsiniz.</dd>
+            </dl>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <script src="help.js?v=20260920-1"></script>
+  </body>
+</html>
