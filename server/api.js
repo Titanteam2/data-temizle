@@ -43,21 +43,6 @@ const allowedMimeTypes = new Set([
   "application/octet-stream",
 ]);
 
-const authRedirectOrigins = new Set([
-  "https://datatemizle.com",
-  "https://www.datatemizle.com",
-  "https://cleanmyrows.com",
-  "https://www.cleanmyrows.com",
-]);
-
-function getAuthRedirectUrl(req) {
-  const requestOrigin = String(req.headers.origin || "").replace(/\/$/, "");
-  if (authRedirectOrigins.has(requestOrigin)) return `${requestOrigin}/`;
-
-  const appUrl = String(process.env.APP_URL || "https://datatemizle.com").replace(/\/$/, "");
-  return `${appUrl}/`;
-}
-
 function checkRateLimit(req, res, key, options) {
   const result = rateLimit(req, key, { ...options, identity: getClientIp(req) });
   if (result.ok) return true;
@@ -285,7 +270,7 @@ async function handleApi(req, res, pathname) {
       return setJson(res, 200, { user }, { ...corsHeaders, "Set-Cookie": localSessionCookie(user.email) });
     }
 
-    const data = await signUp({ email, password, name, redirectTo: getAuthRedirectUrl(req) });
+    const data = await signUp({ email, password, name });
     if (!data.session && !data.access_token) {
       return setJson(res, 200, { user: null, message: "Kayıt alındı. Supabase e-posta doğrulaması açıksa gelen kutusunu kontrol edin." }, corsHeaders);
     }

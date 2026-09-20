@@ -56,7 +56,7 @@ Gerçek değerleri `.env` dosyasına ve Vercel Project Settings > Environment Va
 PORT=3000
 NODE_ENV=production
 APP_URL=https://datatemizle.com
-ALLOWED_ORIGINS=https://datatemizle.com,https://www.datatemizle.com,https://cleanmyrows.com,https://www.cleanmyrows.com
+ALLOWED_ORIGINS=https://datatemizle.com,https://www.datatemizle.com
 ADMIN_EMAIL=admin@example.com
 SUPABASE_URL=https://your-project-ref.supabase.co
 SUPABASE_ANON_KEY=your-supabase-anon-key

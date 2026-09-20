@@ -57,9 +57,8 @@ async function supabaseFetch(path, options = {}, useServiceRole = false) {
   return data;
 }
 
-async function signUp({ email, password, name, redirectTo }) {
-  const redirectQuery = redirectTo ? `?redirect_to=${encodeURIComponent(redirectTo)}` : "";
-  return supabaseFetch(`/auth/v1/signup${redirectQuery}`, {
+async function signUp({ email, password, name }) {
+  return supabaseFetch("/auth/v1/signup", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
