@@ -2319,6 +2319,12 @@ body > .app-error {
   text-decoration: none;
 }
 
+.help-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .help-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
@@ -2664,6 +2670,10 @@ body > .app-error {
   .help-header {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .help-header-actions {
+    justify-content: space-between;
   }
 
   .help-hero,
